@@ -1,0 +1,28 @@
+[project]
+name = "contrib-flow"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ayush yadav", email = "ayush1337yadav@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "langchain-mcp-adapters>=0.3.2",
+    "langgraph>=1.2.16",
+    "python-dotenv>=1.2.4",
+]
+
+[project.scripts]
+contrib-flow = "contrib_flow:main"
+
+[build-system]
+requires = ["uv_build>=0.12.22,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.1",
+]
