@@ -32,26 +32,28 @@
       "confidence": "low"
     },
     {
-      "name": "SQL",
+      "name": "sql",
       "repos": 0,
       "declared": true,
       "confidence": "low"
     },
     {
-      "name": "FastAPI",
+      "name": "flask",
       "repos": 0,
       "declared": true,
       "confidence": "low"
     },
     {
-      "name": "Docker",
+      "name": "docker",
       "repos": 0,
       "declared": true,
       "confidence": "low"
     }
   ],
   "domains": [
-    "gen ai agentic ai backend"
+    "gen ai",
+    "agentic ai",
+    "backend"
   ],
   "level": "beginner",
   "weekly_hours": 10,

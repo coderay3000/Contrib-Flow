@@ -1,0 +1,115 @@
+[
+  {
+    "repo": "elyra-ai/elyra",
+    "number": 1028,
+    "title": "Re-occurring AA/KFP pipeline runs override output artifacts on COS",
+    "url": "https://github.com/elyra-ai/elyra/issues/1028",
+    "labels": [
+      "kind:bug",
+      "component:pipeline-runtime",
+      "feedback:user"
+    ],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Recurring pipeline runs on Kubeflow/Airflow using Elyra overwrite previous run's output artifacts in Cloud Object Storage because artifacts are stored under the experiment name, leading to data loss.",
+      "required_skills": [
+        {
+          "skill": "Elyra",
+          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+        },
+        {
+          "skill": "Kubeflow Pipelines",
+          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+        },
+        {
+          "skill": "Apache Airflow",
+          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+        },
+        {
+          "skill": "Cloud Object Storage",
+          "quote": "Output artifacts are currently stored under the experiment name, causing the problematic behavior."
+        },
+        {
+          "skill": "Scheduling",
+          "quote": "User schedules pipeline as a reoccurring (e.g. daily) run"
+        }
+      ],
+      "difficulty": "intermediate",
+      "estimated_hours": "3-8",
+      "clarity": "high",
+      "blockers": []
+    },
+    "verified_skills": [
+      "Elyra",
+      "Kubeflow Pipelines",
+      "Apache Airflow",
+      "Cloud Object Storage",
+      "Scheduling"
+    ]
+  },
+  {
+    "repo": "dynamicslab/pysindy",
+    "number": 695,
+    "title": "[BUG] Replace np.math from the codes",
+    "url": "https://github.com/dynamicslab/pysindy/issues/695",
+    "labels": [],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Update code to replace deprecated np.math usage with appropriate NumPy functions due to incompatibility with newer versions.",
+      "required_skills": [
+        {
+          "skill": "NumPy",
+          "quote": "np.math is not working with updated numpy versions."
+        },
+        {
+          "skill": "Python",
+          "quote": "Replace them, if possible."
+        }
+      ],
+      "difficulty": "beginner",
+      "estimated_hours": "3-8",
+      "clarity": "low",
+      "blockers": []
+    },
+    "verified_skills": [
+      "NumPy",
+      "Python"
+    ]
+  },
+  {
+    "repo": "GPflow/GPflow",
+    "number": 2167,
+    "title": "Bump tf max version to 2.18+ and numpy to 2.x",
+    "url": "https://github.com/GPflow/GPflow/issues/2167",
+    "labels": [
+      "enhancement"
+    ],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Update GPflow's dependency constraints to allow TensorFlow 2.18+ and NumPy 2.x, ensuring compatibility with newer packages and YDF.",
+      "required_skills": [
+        {
+          "skill": "TensorFlow",
+          "quote": "Current latest `GPflow` supports a max version of tf 2.16.1."
+        },
+        {
+          "skill": "NumPy",
+          "quote": "tf 2.16.1 does not support numpy 2.x."
+        },
+        {
+          "skill": "Python packaging",
+          "quote": "Expanding the max version of tf + starting supporting numpy 2.x."
+        }
+      ],
+      "difficulty": "intermediate",
+      "estimated_hours": "3-8",
+      "clarity": "high",
+      "blockers": []
+    },
+    "verified_skills": [
+      "TensorFlow",
+      "NumPy",
+      "Python packaging"
+    ]
+  }
+]

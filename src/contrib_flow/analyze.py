@@ -1,9 +1,11 @@
 import asyncio
 import os
 import re
+import json
 from typing import Any, Literal
 
 from dotenv import load_dotenv
+from pathlib import Path
 from langchain_groq import ChatGroq
 from pydantic import BaseModel,Field
 
@@ -53,6 +55,16 @@ class IssueAnalysis(BaseModel):
     blockers: list[str]
 
 
+class Analyzed(BaseModel):
+    repo: str
+    number: int
+    title: str
+    url: str
+    labels: list[str]
+    analysis: IssueAnalysis
+    verified_skills: list[str]
+
+
 def normalize(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
@@ -99,6 +111,8 @@ async def main() -> None:
         except Exception as exc:
             print(f"{full_name}: skipped ({exc})")
 
+           
+    results: list[Analyzed] = [] 
     for candidate in candidates[:LIMIT]:
         issue = await fetch_issue(tools, candidate)
         if issue.get("closed_by_pull_requests", {}).get("total_count", 0) > 0:
@@ -115,6 +129,21 @@ async def main() -> None:
             print(f"\n{candidate.repo}#{candidate.number}: not actionable, skipped")
             continue
 
+        results.append(
+            Analyzed(
+                repo=candidate.repo,
+                number=candidate.number,
+                title=candidate.title,
+                url=issue.get("html_url", ""),
+                labels=candidate.labels,
+                analysis=analysis,
+                verified_skills=[s.skill for s in verified],
+            )
+        )
+
+    Path("analyses.json").write_text(
+        json.dumps([r.model_dump() for r in results], indent=2), encoding="utf-8"
+    ) 
 
 if __name__ == "__main__":
     asyncio.run(main())
