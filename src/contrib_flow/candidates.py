@@ -8,6 +8,7 @@ from contrib_flow.mcp_client import load_tools, parse_result
 
 MAX_AGE_DAYS = 180
 MAX_COMMENTS = 10
+MAX_PER_REPO = 10
 
 
 class Candidate(BaseModel):
@@ -35,11 +36,10 @@ async def find_issues(tools: dict[str, BaseTool], full_name: str) -> list[Candid
                 "owner": owner,
                 "repo": repo,
                 "state": "OPEN",
-                "labels": ["good first issue"],
                 "since": cutoff.strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "orderBy": "UPDATED_AT",
                 "direction": "DESC",
-                "perPage": 20,
+                "perPage": MAX_PER_REPO,
                 "fields": [
                     "number", "title", "state", "labels",
                     "assignees", "comments", "created_at", "updated_at",
@@ -48,21 +48,20 @@ async def find_issues(tools: dict[str, BaseTool], full_name: str) -> list[Candid
         )
     )
     found = []
-    for item in data["issues"]:
-        if item["assignees"] or item["comments"] > MAX_COMMENTS:
+    for item in data.get("issues", []):
+        if item.get("assignees") or item.get("comments", 0) > MAX_COMMENTS:
             continue
         candidate = Candidate(
             repo=full_name,
             number=item["number"],
             title=item["title"],
-            labels=item["labels"],
-            comments=item["comments"],
+            labels=item.get("labels", []),
+            comments=item.get("comments", 0),
             updated_at=item["updated_at"],
         )
         if candidate.updated_at >= cutoff:
             found.append(candidate)
     return found
-
 
 async def main() -> None:
     tools = {tool.name: tool for tool in await load_tools()}
