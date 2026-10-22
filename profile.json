@@ -1,0 +1,59 @@
+{
+  "username": "coderay3000",
+  "skills": [
+    {
+      "name": "Jupyter Notebook",
+      "repos": 4,
+      "declared": false,
+      "confidence": "medium"
+    },
+    {
+      "name": "Python",
+      "repos": 12,
+      "declared": true,
+      "confidence": "high"
+    },
+    {
+      "name": "C++",
+      "repos": 1,
+      "declared": true,
+      "confidence": "low"
+    },
+    {
+      "name": "CSS",
+      "repos": 1,
+      "declared": false,
+      "confidence": "low"
+    },
+    {
+      "name": "TypeScript",
+      "repos": 1,
+      "declared": false,
+      "confidence": "low"
+    },
+    {
+      "name": "SQL",
+      "repos": 0,
+      "declared": true,
+      "confidence": "low"
+    },
+    {
+      "name": "FastAPI",
+      "repos": 0,
+      "declared": true,
+      "confidence": "low"
+    },
+    {
+      "name": "Docker",
+      "repos": 0,
+      "declared": true,
+      "confidence": "low"
+    }
+  ],
+  "domains": [
+    "gen ai agentic ai backend"
+  ],
+  "level": "beginner",
+  "weekly_hours": 10,
+  "merged_external_prs": 2
+}
