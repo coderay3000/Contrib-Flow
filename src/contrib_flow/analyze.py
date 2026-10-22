@@ -65,11 +65,16 @@ def issue_text(issue: dict[str, Any]) -> str:
 
 def grounded_skills(analysis: IssueAnalysis, text: str) -> list[SkillEvidence]:
     haystack = normalize(text)
-    return [
-        skill
-        for skill in analysis.required_skills
-        if skill.quote.strip() and normalize(skill.quote) in haystack
-    ]
+    seen: set[str] = set()
+    result: list[SkillEvidence] = []
+    for item in analysis.required_skills:
+        key = item.skill.strip().lower()
+        if key in seen or not item.quote.strip():
+            continue
+        if normalize(item.quote) in haystack:
+            seen.add(key)
+            result.append(item)
+    return result
 
 
 async def fetch_issue(tools: dict[str, Any], candidate: Candidate) -> dict[str, Any]:
@@ -106,15 +111,9 @@ async def main() -> None:
         )
         verified = grounded_skills(analysis, text)
 
-        print(f"\n{candidate.repo}#{candidate.number} {candidate.title[:70]}")
-        print(
-            f"  actionable={analysis.is_actionable} difficulty={analysis.difficulty} "
-            f"hours={analysis.estimated_hours} clarity={analysis.clarity}"
-        )
-        print(f"  skills verified {len(verified)}/{len(analysis.required_skills)}: "
-              f"{[s.skill for s in verified]}")
-        print(f"  summary: {analysis.summary}")
-        print(f"  blockers: {analysis.blockers}")
+        if not analysis.is_actionable:
+            print(f"\n{candidate.repo}#{candidate.number}: not actionable, skipped")
+            continue
 
 
 if __name__ == "__main__":
