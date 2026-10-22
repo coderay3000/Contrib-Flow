@@ -63,13 +63,17 @@ async def find_issues(tools: dict[str, BaseTool], full_name: str) -> list[Candid
             found.append(candidate)
     return found
 
-async def main() -> None:
-    tools = {tool.name: tool for tool in await load_tools()}
+
+def build_query() -> str:
     pushed_after = (datetime.now(UTC) - timedelta(days=30)).date()
-    query = (
+    return (
         "language:python topic:machine-learning stars:50..2000 "
         f"good-first-issues:>0 archived:false pushed:>{pushed_after}"
     )
+
+async def main() -> None:
+    tools = {tool.name: tool for tool in await load_tools()}
+    query = build_query()
 
     first = None
     for full_name in await find_repos(tools, query):
