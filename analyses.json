@@ -1,33 +1,68 @@
 [
   {
-    "repo": "elyra-ai/elyra",
-    "number": 1028,
-    "title": "Re-occurring AA/KFP pipeline runs override output artifacts on COS",
-    "url": "https://github.com/elyra-ai/elyra/issues/1028",
+    "repo": "apache/burr",
+    "number": 391,
+    "title": "Demonstrate deployment of Burr UI on AWS",
+    "url": "https://github.com/apache/burr/issues/391",
     "labels": [
-      "kind:bug",
-      "component:pipeline-runtime",
-      "feedback:user"
+      "kind/documentation",
+      "area/ci",
+      "area/examples",
+      "priority/low"
     ],
     "analysis": {
       "is_actionable": true,
-      "summary": "Recurring pipeline runs overwrite previous run's output artifacts in COS because artifacts are stored under the experiment name; need to adjust naming/storage to preserve each run's outputs.",
+      "summary": "Create a documentation page with a simple AWS deployment example for Burr UI, including a Terraform script, VPN usage, and configurable S3 bucket.",
       "required_skills": [
         {
-          "skill": "Kubeflow Pipelines",
-          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+          "skill": "Terraform",
+          "quote": "Terraform would be nice too!"
         },
         {
-          "skill": "Apache Airflow",
-          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+          "skill": "AWS",
+          "quote": "A documentation page/example for how to deploy on AWS."
         },
         {
-          "skill": "Elyra",
-          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
+          "skill": "Documentation",
+          "quote": "We don't have a simple deploy on AWS tutorial."
+        }
+      ],
+      "difficulty": "beginner",
+      "estimated_hours": "3-8",
+      "clarity": "high",
+      "blockers": []
+    },
+    "verified_skills": [
+      "Terraform",
+      "AWS",
+      "Documentation"
+    ]
+  },
+  {
+    "repo": "om-ai-lab/OmAgent",
+    "number": 259,
+    "title": "Propose opt-in Parallel Search MCP tools for web search and page fetching",
+    "url": "https://github.com/om-ai-lab/OmAgent/issues/259",
+    "labels": [],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Add optional Parallel Search MCP tools to OmAgent by implementing BaseTool classes in Rust, integrating Streamable HTTP calls, and providing docs and tests.",
+      "required_skills": [
+        {
+          "skill": "Rust",
+          "quote": "adding search and fetch tools under `omagent-core/src/omagent_core/tool_system/tools/`, registered as `BaseTool` implementations"
         },
         {
-          "skill": "Cloud Object Storage",
-          "quote": "Output artifacts are currently stored under the experiment name, causing the problematic behavior."
+          "skill": "Async HTTP",
+          "quote": "connect to `https://search.parallel.ai/mcp` using Streamable HTTP, with the MCP client dependency declared for installation"
+        },
+        {
+          "skill": "Testing",
+          "quote": "include configuration and usage documentation, plus tests for registry loading, argument validation, timeout/error handling, and search/fetch dispatch"
+        },
+        {
+          "skill": "ToolManager",
+          "quote": "Live validation would exercise the configured tools through `ToolManager` without Parallel credentials"
         }
       ],
       "difficulty": "intermediate",
@@ -36,85 +71,112 @@
       "blockers": []
     },
     "verified_skills": [
-      "Kubeflow Pipelines",
-      "Apache Airflow",
-      "Elyra",
-      "Cloud Object Storage"
+      "Rust",
+      "Async HTTP",
+      "Testing",
+      "ToolManager"
     ]
   },
   {
-    "repo": "dynamicslab/pysindy",
-    "number": 703,
-    "title": "[BUG] `CustomLibrary` method `fit` causing attribute error in python REPL and Jupyter Notebook",
-    "url": "https://github.com/dynamicslab/pysindy/issues/703",
+    "repo": "om-ai-lab/OmAgent",
+    "number": 258,
+    "title": "RCE via prompt injection in PoT workflow: `safe_execute()` claims a \"sandboxed environment\" but is a bare `exec()`",
+    "url": "https://github.com/om-ai-lab/OmAgent/issues/258",
     "labels": [],
     "analysis": {
       "is_actionable": true,
-      "summary": "Calling CustomLibrary.fit in REPL/Jupyter raises AttributeError during object display because the estimator's __repr__ expects a missing 'library_functions' attribute.",
+      "summary": "The `safe_execute` helper in PoT workflow claims a sandbox but merely calls `exec` with a 5\u2011second timeout, allowing prompt\u2011injection attacks to run arbitrary code on the host. A fix requires replacing the bare exec with a true sandbox (e.g., subprocess, container, or restricted interpreter) and adding input validation/allow\u2011list mechanisms.",
       "required_skills": [
         {
           "skill": "Python",
-          "quote": "In both a python REPL and Jupyter notebook, an attribute error is triggered when the `fit` method of a `CustomLibrary` object is called."
+          "quote": "exec(x)                      # \u2190 PoTExecutor.py:175 \u2014 bare exec, host process"
         },
         {
-          "skill": "PySINDy",
-          "quote": ">>> import pysindy as ps"
+          "skill": "Security",
+          "quote": "The only \"safety\" mechanism is a 5\u2011second timeout. There is no filtering, no allow\u2011list, no namespace restriction, no process/container isolation."
         },
         {
-          "skill": "scikit-learn",
-          "quote": "File \"/opt/anaconda3/envs/driad-sindy/lib/python3.14/site-packages/sklearn/base.py\", line 464, in __repr__"
+          "skill": "Sandboxing",
+          "quote": "Arbitrary code execution on the workflow host, with the privileges of the OmAgent process."
         },
         {
-          "skill": "Jupyter",
-          "quote": "Seems to be some kind of issue with how REPL and Jupyter want to display the output from `fit`."
+          "skill": "Testing",
+          "quote": "Proof of concept ... marker file created \u2192 host RCE confirmed"
         },
         {
-          "skill": "debugging",
-          "quote": "AttributeError: 'CustomLibrary' object has no attribute 'library_functions'"
+          "skill": "Containerization",
+          "quote": "no process/container isolation"
         }
       ],
-      "difficulty": "intermediate",
-      "estimated_hours": "3-8",
+      "difficulty": "advanced",
+      "estimated_hours": "8-20",
       "clarity": "high",
       "blockers": [
-        "Missing attribute 'library_functions' causing __repr__ failure"
+        "Current implementation uses bare exec without isolation",
+        "No input sanitization or allow\u2011list for executed code"
       ]
     },
     "verified_skills": [
       "Python",
-      "PySINDy",
-      "scikit-learn",
-      "Jupyter",
-      "debugging"
+      "Sandboxing",
+      "Containerization"
     ]
   },
   {
-    "repo": "GPflow/GPflow",
-    "number": 2167,
-    "title": "Bump tf max version to 2.18+ and numpy to 2.x",
-    "url": "https://github.com/GPflow/GPflow/issues/2167",
-    "labels": [
-      "enhancement"
-    ],
+    "repo": "marketcalls/openalgo",
+    "number": 2280,
+    "title": "Fyers nse symbols for debt instruments are missing in openalgo which is available in fyers master contract",
+    "url": "https://github.com/marketcalls/openalgo/issues/2280",
+    "labels": [],
     "analysis": {
       "is_actionable": true,
-      "summary": "Update GPflow's dependency constraints to allow TensorFlow 2.18+ and NumPy 2.x, ensuring compatibility with newer packages and YDF.",
+      "summary": "Add missing Fyers NSE debt instrument symbols (e.g., NSE:10ISFL26-N3) to OpenAlgo's symbol database and search functionality.",
       "required_skills": [
         {
-          "skill": "TensorFlow",
-          "quote": "Current latest `GPflow` supports a max version of tf 2.16.1."
+          "skill": "Fyers API",
+          "quote": "Fyers Symbol details: NSE:10ISFL26-N3"
         },
         {
-          "skill": "NumPy",
-          "quote": "tf 2.16.1 does not support numpy 2.x."
+          "skill": "OpenAlgo platform",
+          "quote": "Not seeing in openalgo symbols and search"
         },
         {
-          "skill": "Python packaging",
-          "quote": "Expanding the max version of tf + starting supporting numpy 2.x."
+          "skill": "Data ingestion",
+          "quote": "Available in master contract"
+        }
+      ],
+      "difficulty": "intermediate",
+      "estimated_hours": "3-8",
+      "clarity": "medium",
+      "blockers": []
+    },
+    "verified_skills": [
+      "Fyers API",
+      "OpenAlgo platform",
+      "Data ingestion"
+    ]
+  },
+  {
+    "repo": "marketcalls/openalgo",
+    "number": 2276,
+    "title": "Kindly bring this features to bring in the OpenAlgo",
+    "url": "https://github.com/marketcalls/openalgo/issues/2276",
+    "labels": [],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Add columns for absolute price difference (Change) and percentage change (Chg%) to the OpenAlgo Chart watchlist, matching TradingView layout.",
+      "required_skills": [
+        {
+          "skill": "Front\u2011end",
+          "quote": "Enhance the OpenAlgo Chart watchlist to display the following columns, similar to TradingView:"
         },
         {
-          "skill": "YDF",
-          "quote": "enabling 2.18.x would enable the use of YDF and YDF-TF (2.18)"
+          "skill": "JavaScript",
+          "quote": "display the price difference (Change) and percentage change (Chg%) in the watchlist"
+        },
+        {
+          "skill": "UI design",
+          "quote": "Current Behaviour ... Does not display the absolute price difference (Change)"
         }
       ],
       "difficulty": "intermediate",
@@ -123,10 +185,8 @@
       "blockers": []
     },
     "verified_skills": [
-      "TensorFlow",
-      "NumPy",
-      "Python packaging",
-      "YDF"
+      "Front\u2011end",
+      "JavaScript"
     ]
   }
 ]
