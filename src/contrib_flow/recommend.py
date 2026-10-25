@@ -16,7 +16,7 @@ PLANNING_WEEKS = 2
 def skill_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     have = {skill.name.lower(): skill for skill in profile.skills}
     if not item.verified_skills:
-        return 0.5, "no verified skills listed, so neutral"
+        return 0.3, "no skill evidence in the issue text, so we cannot tell"
     points = 0.0
     hits: list[str] = []
     missing: list[str] = []
@@ -48,6 +48,11 @@ def clarity_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     return CLARITY_SCORE[item.analysis.clarity], f"clarity is {item.analysis.clarity}"
 
 
+def is_eligible(profile: Profile, item: Analyzed) -> bool:
+    gap = LEVEL_RANK[item.analysis.difficulty] - LEVEL_RANK[profile.level]
+    return gap < 2
+
+
 def score(profile: Profile, item: Analyzed) -> tuple[float, dict[str, tuple[float, str]]]:
     parts = {
         "skill": skill_score(profile, item),
@@ -59,21 +64,35 @@ def score(profile: Profile, item: Analyzed) -> tuple[float, dict[str, tuple[floa
     return total, parts
 
 
-def bucket(total: float) -> str:
-    if total >= 0.75:
+def bucket(total: float, skill: float, known: bool) -> str:
+    if not known:
+        return "Fair match"
+    if total >= 0.75 and skill >= 0.5:
         return "Strong match"
-    if total >= 0.55:
+    if total >= 0.55 and skill >= 0.2:
         return "Good match"
     return "Fair match"
+
+BUCKET_RANK = {"Strong match": 0, "Good match": 1, "Fair match": 2}
 
 
 def main() -> None:
     profile = Profile.model_validate_json(Path("profile.json").read_text(encoding="utf-8"))
-    items = [Analyzed.model_validate(x) for x in json.loads(Path("analyses.json").read_text(encoding="utf-8"))]
+    items = [
+        Analyzed.model_validate(x)
+        for x in json.loads(Path("analyses.json").read_text(encoding="utf-8"))
+    ]
+    items = [item for item in items if is_eligible(profile, item)]
 
-    ranked = sorted(((score(profile, item), item) for item in items), key=lambda pair: -pair[0][0])
-    for position, ((total, parts), item) in enumerate(ranked[:5], start=1):
-        print(f"\n#{position} {bucket(total)} ({total:.2f})  {item.repo}#{item.number}  {item.title[:60]}")
+    rows = []
+    for item in items:
+        total, parts = score(profile, item)
+        label = bucket(total, parts["skill"][0], bool(item.verified_skills))
+        rows.append((label, total, parts, item))
+    rows.sort(key=lambda row: (BUCKET_RANK[row[0]], -row[1]))
+
+    for position, (label, total, parts, item) in enumerate(rows[:5], start=1):
+        print(f"\n#{position} {label} ({total:.2f})  {item.repo}#{item.number}  {item.title[:60]}")
         print(f"   {item.url}")
         for name, (value, reason) in parts.items():
             print(f"   {name:<10} {value:.2f} x {WEIGHTS[name]:.2f}  {reason}")

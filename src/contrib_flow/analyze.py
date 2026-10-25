@@ -16,9 +16,9 @@ from contrib_flow.queries import plan_queries
 
 load_dotenv()
 
-REPOS_PER_QUERY = 3
-PER_REPO = 2
-LIMIT = 24
+REPOS_PER_QUERY = 6
+PER_REPO = 3
+LIMIT = 40
 BODY_LIMIT = 4000
 
 SYSTEM_PROMPT = """You analyse GitHub issues for developers looking for open-source work.
@@ -32,7 +32,9 @@ Rate honestly and use the whole scale:
   and gives enough detail to start; a one-line or vague idea is low.
 - difficulty: beginner = small localized change with clear steps; intermediate = needs
   understanding several files or components; advanced = design decisions or deep
-  internals. Do not default to intermediate."""
+  internals. Do not default to intermediate.
+  List only languages, frameworks, libraries and tools needed to make the change.
+Do not list the project's own name or its internal modules as skills."""
 
 
 class SkillEvidence(BaseModel):
