@@ -11,12 +11,8 @@
     ],
     "analysis": {
       "is_actionable": true,
-      "summary": "Recurring pipeline runs on Kubeflow/Airflow using Elyra overwrite previous run's output artifacts in Cloud Object Storage because artifacts are stored under the experiment name, leading to data loss.",
+      "summary": "Recurring pipeline runs overwrite previous run's output artifacts in COS because artifacts are stored under the experiment name; need to adjust naming/storage to preserve each run's outputs.",
       "required_skills": [
-        {
-          "skill": "Elyra",
-          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
-        },
         {
           "skill": "Kubeflow Pipelines",
           "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
@@ -26,54 +22,70 @@
           "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
         },
         {
-          "skill": "Cloud Object Storage",
-          "quote": "Output artifacts are currently stored under the experiment name, causing the problematic behavior."
+          "skill": "Elyra",
+          "quote": "User deploys an Elyra pipeline on Kubeflow Pipelines / Apache Airflow"
         },
         {
-          "skill": "Scheduling",
-          "quote": "User schedules pipeline as a reoccurring (e.g. daily) run"
+          "skill": "Cloud Object Storage",
+          "quote": "Output artifacts are currently stored under the experiment name, causing the problematic behavior."
+        }
+      ],
+      "difficulty": "intermediate",
+      "estimated_hours": "8-20",
+      "clarity": "high",
+      "blockers": []
+    },
+    "verified_skills": [
+      "Kubeflow Pipelines",
+      "Apache Airflow",
+      "Elyra",
+      "Cloud Object Storage"
+    ]
+  },
+  {
+    "repo": "dynamicslab/pysindy",
+    "number": 703,
+    "title": "[BUG] `CustomLibrary` method `fit` causing attribute error in python REPL and Jupyter Notebook",
+    "url": "https://github.com/dynamicslab/pysindy/issues/703",
+    "labels": [],
+    "analysis": {
+      "is_actionable": true,
+      "summary": "Calling CustomLibrary.fit in REPL/Jupyter raises AttributeError during object display because the estimator's __repr__ expects a missing 'library_functions' attribute.",
+      "required_skills": [
+        {
+          "skill": "Python",
+          "quote": "In both a python REPL and Jupyter notebook, an attribute error is triggered when the `fit` method of a `CustomLibrary` object is called."
+        },
+        {
+          "skill": "PySINDy",
+          "quote": ">>> import pysindy as ps"
+        },
+        {
+          "skill": "scikit-learn",
+          "quote": "File \"/opt/anaconda3/envs/driad-sindy/lib/python3.14/site-packages/sklearn/base.py\", line 464, in __repr__"
+        },
+        {
+          "skill": "Jupyter",
+          "quote": "Seems to be some kind of issue with how REPL and Jupyter want to display the output from `fit`."
+        },
+        {
+          "skill": "debugging",
+          "quote": "AttributeError: 'CustomLibrary' object has no attribute 'library_functions'"
         }
       ],
       "difficulty": "intermediate",
       "estimated_hours": "3-8",
       "clarity": "high",
-      "blockers": []
+      "blockers": [
+        "Missing attribute 'library_functions' causing __repr__ failure"
+      ]
     },
     "verified_skills": [
-      "Elyra",
-      "Kubeflow Pipelines",
-      "Apache Airflow",
-      "Cloud Object Storage",
-      "Scheduling"
-    ]
-  },
-  {
-    "repo": "dynamicslab/pysindy",
-    "number": 695,
-    "title": "[BUG] Replace np.math from the codes",
-    "url": "https://github.com/dynamicslab/pysindy/issues/695",
-    "labels": [],
-    "analysis": {
-      "is_actionable": true,
-      "summary": "Update code to replace deprecated np.math usage with appropriate NumPy functions due to incompatibility with newer versions.",
-      "required_skills": [
-        {
-          "skill": "NumPy",
-          "quote": "np.math is not working with updated numpy versions."
-        },
-        {
-          "skill": "Python",
-          "quote": "Replace them, if possible."
-        }
-      ],
-      "difficulty": "beginner",
-      "estimated_hours": "3-8",
-      "clarity": "low",
-      "blockers": []
-    },
-    "verified_skills": [
-      "NumPy",
-      "Python"
+      "Python",
+      "PySINDy",
+      "scikit-learn",
+      "Jupyter",
+      "debugging"
     ]
   },
   {
@@ -99,6 +111,10 @@
         {
           "skill": "Python packaging",
           "quote": "Expanding the max version of tf + starting supporting numpy 2.x."
+        },
+        {
+          "skill": "YDF",
+          "quote": "enabling 2.18.x would enable the use of YDF and YDF-TF (2.18)"
         }
       ],
       "difficulty": "intermediate",
@@ -109,7 +125,8 @@
     "verified_skills": [
       "TensorFlow",
       "NumPy",
-      "Python packaging"
+      "Python packaging",
+      "YDF"
     ]
   }
 ]
