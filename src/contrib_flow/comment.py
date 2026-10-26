@@ -14,6 +14,7 @@ from contrib_flow.analyze import Analyzed
 from contrib_flow.mcp_client import result_text
 from contrib_flow.profile import Profile
 from contrib_flow.recommend import rank_items
+from typing import Any
 
 load_dotenv()
 
@@ -107,7 +108,7 @@ def review(draft: str, where: str) -> str | None:
             draft = read_multiline() or draft
 
 
-async def post_comment(target: Target, body: str) -> tuple[bool, str]:
+async def call_write_tool(name: str, args: dict[str, Any]) -> str:
     client = MultiServerMCPClient(
         {
             "write": {
@@ -118,16 +119,27 @@ async def post_comment(target: Target, body: str) -> tuple[bool, str]:
         }
     )
     tools = {tool.name: tool for tool in await client.get_tools()}
-    result = await tools["comment_on_issue"].ainvoke(
-        {
-            "owner": target.owner,
-            "repo": target.repo,
-            "issue_number": target.number,
-            "body": body,
-        }
+    return result_text(await tools[name].ainvoke(args)).strip()
+
+
+async def post_comment(target: Target, body: str) -> tuple[bool, str]:
+    text = await call_write_tool(
+        "comment_on_issue",
+        {"owner": target.owner, "repo": target.repo, "issue_number": target.number, "body": body},
     )
-    text = result_text(result).strip()
     return bool(COMMENT_URL.fullmatch(text)), text
+
+
+async def notify_discord(message: str) -> tuple[bool, str]:
+    text = await call_write_tool("send_discord_message", {"text": message})
+    return text == "sent", text
+
+
+def ask_yes_no(prompt: str) -> bool:
+    try:
+        return input(prompt).strip().lower() == "y"
+    except (EOFError, KeyboardInterrupt):
+        return False
 
 
 async def main() -> None:
@@ -156,6 +168,10 @@ async def main() -> None:
 
     ok, text = await post_comment(target, approved)
     print("Posted:" if ok else "NOT posted:", text)
+
+    if ok and ask_yes_no("Send a note about this to Discord? [y/n]: "):
+        sent, info = await notify_discord(f"Commented on {where}: {text}")
+        print("Discord:", "sent" if sent else f"NOT sent ({info})")
 
 
 if __name__ == "__main__":

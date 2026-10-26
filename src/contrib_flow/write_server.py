@@ -14,7 +14,11 @@ load_dotenv()
 API = "https://api.github.com"
 AUDIT_FILE = Path("audit.jsonl")
 DAILY_LIMIT = int(os.environ.get("DAILY_LIMIT", "3"))
-MAX_BODY = 1500
+DISCORD_PREFIXES = (
+    "https://discord.com/api/webhooks/",
+    "https://discordapp.com/api/webhooks/",
+)
+MAX_DISCORD = 1800
 OWNER_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})")
 REPO_RE = re.compile(r"[A-Za-z0-9._-]{1,100}")
 
@@ -103,6 +107,32 @@ def comment_on_issue(owner: str, repo: str, issue_number: int, body: str) -> str
     url = response.json()["html_url"]
     audit({**target, "status": "posted", "url": url})
     return url
+
+@mcp.tool()
+def send_discord_message(text: str) -> str:
+    """Send one plain-text note to the configured Discord channel. Mentions are disabled."""
+    webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
+    if not webhook.startswith(DISCORD_PREFIXES):
+        raise RuntimeError("DISCORD_WEBHOOK_URL is missing or not a Discord webhook URL")
+    message = text.strip()[:MAX_DISCORD]
+    if not message:
+        raise ValueError("message is empty")
+
+    try:
+        response = httpx.post(
+            webhook,
+            json={"content": message, "allowed_mentions": {"parse": []}},
+            timeout=15,
+        )
+    except httpx.HTTPError as exc:
+        audit({"status": "discord_failed", "reason": type(exc).__name__})
+        raise RuntimeError("network error while sending to Discord") from exc
+
+    if response.status_code not in (200, 204):
+        audit({"status": "discord_failed", "http": response.status_code})
+        raise RuntimeError(f"Discord returned {response.status_code}")
+    audit({"status": "discord_sent", "chars": len(message)})
+    return "sent"
 
 
 if __name__ == "__main__":
