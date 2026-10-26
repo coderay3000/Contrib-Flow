@@ -110,8 +110,8 @@ async def analyse(llm: Any, text: str) -> IssueAnalysis | None:
     for attempt in range(2):
         try:
             return await llm.ainvoke(messages)
-        except Exception as exc:
-            print(f"  LLM failed (attempt {attempt + 1}): {str(exc)[:120]}")
+        except Exception as exc:  # noqa: BLE001 - one failed LLM call must not stop the batch
+            print(f"  LLM failed (attempt {attempt + 1}): {type(exc).__name__}")
             await asyncio.sleep(3)
     return None
 
@@ -128,8 +128,8 @@ async def gather_candidates(
             seen.add(full_name)
             try:
                 candidates += (await find_issues(tools, full_name))[:PER_REPO]
-            except Exception as exc:
-                print(f"{full_name}: skipped ({exc})")
+            except Exception as exc:  # noqa: BLE001 - one repo failing must not stop the search
+                print(f"{full_name}: skipped ({type(exc).__name__})")
     return candidates
 
 

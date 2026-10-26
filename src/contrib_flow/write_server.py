@@ -14,6 +14,7 @@ load_dotenv()
 API = "https://api.github.com"
 AUDIT_FILE = Path("audit.jsonl")
 DAILY_LIMIT = int(os.environ.get("DAILY_LIMIT", "3"))
+MAX_BODY = 1500
 DISCORD_PREFIXES = (
     "https://discord.com/api/webhooks/",
     "https://discordapp.com/api/webhooks/",
@@ -108,12 +109,15 @@ def comment_on_issue(owner: str, repo: str, issue_number: int, body: str) -> str
     audit({**target, "status": "posted", "url": url})
     return url
 
+
 @mcp.tool()
 def send_discord_message(text: str) -> str:
     """Send one plain-text note to the configured Discord channel. Mentions are disabled."""
     webhook = os.environ.get("DISCORD_WEBHOOK_URL", "")
     if not webhook.startswith(DISCORD_PREFIXES):
-        raise RuntimeError("DISCORD_WEBHOOK_URL is missing or not a Discord webhook URL")
+        raise RuntimeError(
+            "DISCORD_WEBHOOK_URL is missing or not a Discord webhook URL"
+        )
     message = text.strip()[:MAX_DISCORD]
     if not message:
         raise ValueError("message is empty")

@@ -66,8 +66,10 @@ async def plan_queries(profile: Profile) -> list[str]:
     for attempt in range(2):
         try:
             plan = await llm.ainvoke(messages)
-        except Exception as exc:
-            print(f"query planning failed (attempt {attempt + 1}): {exc}")
+        except Exception as exc:  # noqa: BLE001 - a failed LLM call is retried once
+            print(
+                f"query planning failed (attempt {attempt + 1}): {type(exc).__name__}"
+            )
             continue
         queries = to_queries(plan)
         if queries:

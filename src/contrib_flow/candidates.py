@@ -92,8 +92,8 @@ async def main() -> None:
     for full_name in await find_repos(tools, query):
         try:
             candidates = await find_issues(tools, full_name)
-        except Exception as exc:
-            print(f"{full_name}: skipped ({exc})")
+        except Exception as exc:  # noqa: BLE001 - one repo failing must not stop the search
+            print(f"{full_name}: skipped ({type(exc).__name__})")
             continue
         print(f"{full_name}: {len(candidates)} candidates")
         for c in candidates[:3]:
