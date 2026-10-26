@@ -1,11 +1,11 @@
 import asyncio
-import os
 import json
+import os
+from typing import Any
 
 from dotenv import load_dotenv
 from langchain_core.tools import BaseTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from typing import Any
 
 load_dotenv()
 
@@ -45,12 +45,15 @@ async def main() -> None:
         print(tool.name, "->", list(tool.args_schema["properties"]))
 
 
-def parse_result(result: Any) -> Any:
+def result_text(result: Any) -> str:
     if isinstance(result, str):
-        text = result
-    else:
-        text = "".join(block["text"] for block in result if block.get("type") == "text")
-    return json.loads(text)
+        return result
+    return "".join(block["text"] for block in result if block.get("type") == "text")
+
+
+def parse_result(result: Any) -> Any:
+    return json.loads(result_text(result))
+
 
 if __name__ == "__main__":
     asyncio.run(main())

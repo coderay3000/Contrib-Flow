@@ -41,7 +41,10 @@ def effort_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     capacity = profile.weekly_hours * PLANNING_WEEKS
     needed = HOURS_UPPER[item.analysis.estimated_hours]
     value = 1.0 if needed <= capacity else capacity / needed
-    return value, f"about {item.analysis.estimated_hours} h, you have ~{capacity} h in {PLANNING_WEEKS} weeks"
+    return (
+        value,
+        f"about {item.analysis.estimated_hours} h, you have ~{capacity} h in {PLANNING_WEEKS} weeks",
+    )
 
 
 def clarity_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
@@ -53,7 +56,9 @@ def is_eligible(profile: Profile, item: Analyzed) -> bool:
     return gap < 2
 
 
-def score(profile: Profile, item: Analyzed) -> tuple[float, dict[str, tuple[float, str]]]:
+def score(
+    profile: Profile, item: Analyzed
+) -> tuple[float, dict[str, tuple[float, str]]]:
     parts = {
         "skill": skill_score(profile, item),
         "difficulty": difficulty_score(profile, item),
@@ -73,26 +78,38 @@ def bucket(total: float, skill: float, known: bool) -> str:
         return "Good match"
     return "Fair match"
 
+
 BUCKET_RANK = {"Strong match": 0, "Good match": 1, "Fair match": 2}
 
 
-def main() -> None:
-    profile = Profile.model_validate_json(Path("profile.json").read_text(encoding="utf-8"))
-    items = [
-        Analyzed.model_validate(x)
-        for x in json.loads(Path("analyses.json").read_text(encoding="utf-8"))
-    ]
-    items = [item for item in items if is_eligible(profile, item)]
-
+def rank_items(
+    profile: Profile, items: list[Analyzed]
+) -> list[tuple[str, float, dict, Analyzed]]:
     rows = []
     for item in items:
+        if not is_eligible(profile, item):
+            continue
         total, parts = score(profile, item)
         label = bucket(total, parts["skill"][0], bool(item.verified_skills))
         rows.append((label, total, parts, item))
     rows.sort(key=lambda row: (BUCKET_RANK[row[0]], -row[1]))
+    return rows
 
-    for position, (label, total, parts, item) in enumerate(rows[:5], start=1):
-        print(f"\n#{position} {label} ({total:.2f})  {item.repo}#{item.number}  {item.title[:60]}")
+
+def main() -> None:
+    profile = Profile.model_validate_json(
+        Path("profile.json").read_text(encoding="utf-8")
+    )
+    items = [
+        Analyzed.model_validate(x)
+        for x in json.loads(Path("analyses.json").read_text(encoding="utf-8"))
+    ]
+    for position, (label, total, parts, item) in enumerate(
+        rank_items(profile, items)[:5], start=1
+    ):
+        print(
+            f"\n#{position} {label} ({total:.2f})  {item.repo}#{item.number}  {item.title[:60]}"
+        )
         print(f"   {item.url}")
         for name, (value, reason) in parts.items():
             print(f"   {name:<10} {value:.2f} x {WEIGHTS[name]:.2f}  {reason}")

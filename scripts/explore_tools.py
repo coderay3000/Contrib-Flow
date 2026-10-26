@@ -25,7 +25,12 @@ async def main() -> None:
         print("no repos found, loosen the query")
         return
     for repo in found["items"]:
-        print(repo["full_name"], repo["stargazers_count"], repo["open_issues_count"], repo["topics"][:4])
+        print(
+            repo["full_name"],
+            repo["stargazers_count"],
+            repo["open_issues_count"],
+            repo["topics"][:4],
+        )
 
     owner, name = found["items"][0]["full_name"].split("/")
     try:

@@ -20,11 +20,17 @@ class Candidate(BaseModel):
     updated_at: datetime
 
 
-async def find_repos(tools: dict[str, BaseTool], query: str, limit: int = 5) -> list[str]:
+async def find_repos(
+    tools: dict[str, BaseTool], query: str, limit: int = 5
+) -> list[str]:
     data = parse_result(
         await tools["search_repositories"].ainvoke({"query": query, "perPage": limit})
     )
-    return [item["full_name"] for item in data["items"] if not item["archived"] and not item["fork"]]
+    return [
+        item["full_name"]
+        for item in data["items"]
+        if not item["archived"] and not item["fork"]
+    ]
 
 
 async def find_issues(tools: dict[str, BaseTool], full_name: str) -> list[Candidate]:
@@ -41,8 +47,14 @@ async def find_issues(tools: dict[str, BaseTool], full_name: str) -> list[Candid
                 "direction": "DESC",
                 "perPage": MAX_PER_REPO,
                 "fields": [
-                    "number", "title", "state", "labels",
-                    "assignees", "comments", "created_at", "updated_at",
+                    "number",
+                    "title",
+                    "state",
+                    "labels",
+                    "assignees",
+                    "comments",
+                    "created_at",
+                    "updated_at",
                 ],
             }
         )
@@ -71,6 +83,7 @@ def build_query() -> str:
         f"good-first-issues:>0 archived:false pushed:>{pushed_after}"
     )
 
+
 async def main() -> None:
     tools = {tool.name: tool for tool in await load_tools()}
     query = build_query()
@@ -84,7 +97,9 @@ async def main() -> None:
             continue
         print(f"{full_name}: {len(candidates)} candidates")
         for c in candidates[:3]:
-            print(f"  #{c.number} {c.title[:60]} | {c.labels} | {c.comments} comments | {c.updated_at:%Y-%m-%d}")
+            print(
+                f"  #{c.number} {c.title[:60]} | {c.labels} | {c.comments} comments | {c.updated_at:%Y-%m-%d}"
+            )
         if candidates and first is None:
             first = candidates[0]
 
@@ -92,7 +107,12 @@ async def main() -> None:
         owner, repo = first.repo.split("/")
         detail = parse_result(
             await tools["issue_read"].ainvoke(
-                {"method": "get", "owner": owner, "repo": repo, "issue_number": first.number}
+                {
+                    "method": "get",
+                    "owner": owner,
+                    "repo": repo,
+                    "issue_number": first.number,
+                }
             )
         )
         print("\n=== issue_read get (probe) ===")

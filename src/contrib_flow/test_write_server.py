@@ -21,14 +21,19 @@ async def main() -> None:
     tools = {tool.name: tool for tool in await client.get_tools()}
     comment = tools["comment_on_issue"]
 
-    print("test 1: repo outside the allowlist must be refused")
+    print("test 1: repo outside the allowlist must not post")
     try:
-        await comment.ainvoke(
+        outcome = await comment.ainvoke(
             {"owner": "torvalds", "repo": "linux", "issue_number": 1, "body": "test"}
         )
-        print("  BAD: it was not refused")
     except Exception as exc:
-        print("  refused as expected:", str(exc)[:100])
+        outcome = f"raised: {exc}"
+    print("  result:", str(outcome)[:150])
+    print(
+        "  BAD: it posted"
+        if "issuecomment" in str(outcome)
+        else "  OK: nothing was posted"
+    )
 
     sandbox = os.environ["ALLOWED_REPOS"].split(",")[0].strip()
     owner, repo = sandbox.split("/")

@@ -95,7 +95,12 @@ async def fetch_issue(tools: dict[str, Any], candidate: Candidate) -> dict[str, 
     owner, repo = candidate.repo.split("/")
     return parse_result(
         await tools["issue_read"].ainvoke(
-            {"method": "get", "owner": owner, "repo": repo, "issue_number": candidate.number}
+            {
+                "method": "get",
+                "owner": owner,
+                "repo": repo,
+                "issue_number": candidate.number,
+            }
         )
     )
 
@@ -111,7 +116,9 @@ async def analyse(llm: Any, text: str) -> IssueAnalysis | None:
     return None
 
 
-async def gather_candidates(tools: dict[str, Any], queries: list[str]) -> list[Candidate]:
+async def gather_candidates(
+    tools: dict[str, Any], queries: list[str]
+) -> list[Candidate]:
     candidates: list[Candidate] = []
     seen: set[str] = set()
     for query in queries:
@@ -127,11 +134,13 @@ async def gather_candidates(tools: dict[str, Any], queries: list[str]) -> list[C
 
 
 async def main() -> None:
-    profile = Profile.model_validate_json(Path("profile.json").read_text(encoding="utf-8"))
-    tools = {tool.name: tool for tool in await load_tools()}
-    llm = ChatGroq(model=os.environ["GROQ_MODEL"], temperature=0).with_structured_output(
-        IssueAnalysis
+    profile = Profile.model_validate_json(
+        Path("profile.json").read_text(encoding="utf-8")
     )
+    tools = {tool.name: tool for tool in await load_tools()}
+    llm = ChatGroq(
+        model=os.environ["GROQ_MODEL"], temperature=0
+    ).with_structured_output(IssueAnalysis)
 
     queries = await plan_queries(profile)
     print("queries:", *queries, sep="\n  ")

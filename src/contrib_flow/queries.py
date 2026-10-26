@@ -24,8 +24,12 @@ Reply with JSON only, no prose and no tables, exactly in this shape:
 
 
 class RepoSearch(BaseModel):
-    language: str = Field(description="One programming language, lowercase, e.g. python")
-    topic: str = Field(description="One GitHub topic, lowercase with hyphens, e.g. llm-agents")
+    language: str = Field(
+        description="One programming language, lowercase, e.g. python"
+    )
+    topic: str = Field(
+        description="One GitHub topic, lowercase with hyphens, e.g. llm-agents"
+    )
 
 
 class QueryPlan(BaseModel):
@@ -55,9 +59,9 @@ def to_queries(plan: QueryPlan) -> list[str]:
 
 
 async def plan_queries(profile: Profile) -> list[str]:
-    llm = ChatGroq(model=os.environ["GROQ_MODEL"], temperature=0).with_structured_output(
-        QueryPlan, method="json_mode"
-    )
+    llm = ChatGroq(
+        model=os.environ["GROQ_MODEL"], temperature=0
+    ).with_structured_output(QueryPlan, method="json_mode")
     messages = [("system", SYSTEM_PROMPT), ("human", describe(profile))]
     for attempt in range(2):
         try:
@@ -72,7 +76,9 @@ async def plan_queries(profile: Profile) -> list[str]:
 
 
 async def main() -> None:
-    profile = Profile.model_validate_json(Path("profile.json").read_text(encoding="utf-8"))
+    profile = Profile.model_validate_json(
+        Path("profile.json").read_text(encoding="utf-8")
+    )
     for query in await plan_queries(profile):
         print(query)
 

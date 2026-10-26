@@ -53,7 +53,12 @@ async def main() -> None:
     print("repos (non-fork):", ev["repo_count"])
     print("languages:", ev["languages"].most_common(5))
     print("topics:", ev["topics"].most_common(8))
-    print("merged PRs total:", ev["merged_total"], "| in other people's repos:", len(ev["merged_external"]))
+    print(
+        "merged PRs total:",
+        ev["merged_total"],
+        "| in other people's repos:",
+        len(ev["merged_external"]),
+    )
     for pr in ev["merged_external"][:5]:
         repo_name = pr.get("repository_url", "?").split("/repos/")[-1]
         print("  ", repo_name, "|", pr.get("title", "")[:60])

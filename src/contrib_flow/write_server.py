@@ -13,7 +13,7 @@ load_dotenv()
 
 API = "https://api.github.com"
 AUDIT_FILE = Path("audit.jsonl")
-DAILY_LIMIT = 3
+DAILY_LIMIT = int(os.environ.get("DAILY_LIMIT", "3"))
 MAX_BODY = 1500
 OWNER_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})")
 REPO_RE = re.compile(r"[A-Za-z0-9._-]{1,100}")
@@ -47,7 +47,11 @@ def posted_today() -> int:
 
 
 def refusal_reason(owner: str, repo: str, issue_number: int, body: str) -> str | None:
-    if not OWNER_RE.fullmatch(owner) or not REPO_RE.fullmatch(repo) or repo in {".", ".."}:
+    if (
+        not OWNER_RE.fullmatch(owner)
+        or not REPO_RE.fullmatch(repo)
+        or repo in {".", ".."}
+    ):
         return "invalid owner or repo name"
     if f"{owner}/{repo}".lower() not in allowed_repos():
         return "repository is not in ALLOWED_REPOS"
