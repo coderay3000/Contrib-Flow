@@ -1,4 +1,5 @@
-# Byte-compiled / optimized / DLL files
+uv run ruff check . --fix
+uv run python -m contrib_flow.followup# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
@@ -223,3 +224,5 @@ profile.json
 analyses.json
 
 audit.jsonl
+
+followup_state.json
