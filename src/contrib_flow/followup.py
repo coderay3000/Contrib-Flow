@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from contrib_flow.comment import ask_yes_no, call_write_tool
-from contrib_flow.mcp_client import load_tools, parse_result
+from contrib_flow.mcp_client import load_tools, parse_result, root_cause
 from contrib_flow.profile import Profile
 
 AUDIT_FILE = Path("audit.jsonl")
@@ -98,14 +98,25 @@ async def main() -> None:
     notified = load_notified()
 
     found: list[tuple[int, str]] = []
+    failed = 0
     for (repo, number), after_id in tracked.items():
-        comments = await fetch_comments(tools, repo, number)
+        try:
+            comments = await fetch_comments(tools, repo, number)
+        except Exception as exc:  # noqa: BLE001 - one unreachable issue must not stop the rest
+            failed += 1
+            print(f"{repo}#{number}: could not check ({root_cause(exc)})")
+            continue
         for comment in new_replies(comments, after_id, profile.username, notified, include_own):
             author = comment.get("user", {}).get("login", "someone")
-            found.append((comment["id"], f"- {author} replied on {repo}#{number}: {comment['html_url']}"))
+            found.append(
+                (comment["id"], f"- {author} replied on {repo}#{number}: {comment['html_url']}")
+            )
 
     if not found:
-        print("No new replies.")
+        if failed:
+            print(f"No new replies found, but {failed} issue(s) could not be checked.")
+        else:
+            print("No new replies.")
         return
 
     batch = found[:MAX_PER_RUN]

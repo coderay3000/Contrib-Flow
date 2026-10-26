@@ -55,5 +55,10 @@ def parse_result(result: Any) -> Any:
     return json.loads(result_text(result))
 
 
+def root_cause(exc: BaseException) -> str:
+    while isinstance(exc, BaseExceptionGroup) and exc.exceptions:
+        exc = exc.exceptions[0]
+    return type(exc).__name__
+
 if __name__ == "__main__":
     asyncio.run(main())
