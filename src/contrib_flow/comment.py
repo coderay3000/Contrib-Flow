@@ -12,7 +12,8 @@ from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from contrib_flow.analyze import Analyzed
-from contrib_flow.mcp_client import result_text
+from contrib_flow.mcp_client import load_tools, result_text, root_cause
+from contrib_flow.policy import extract_rules, fetch_contributing, print_rules
 from contrib_flow.profile import Profile
 from contrib_flow.recommend import rank_items
 
@@ -70,6 +71,30 @@ def pick_target(profile: Profile) -> Target:
     item = rows[choice - 1][3]
     owner, repo = item.repo.split("/")
     return Target(owner, repo, item.number, item.title, item.analysis.summary)
+
+async def show_policy(target: Target) -> None:
+    print(f"\nReading the contribution rules of {target.owner}/{target.repo} ...\n")
+    try:
+        tools = {tool.name: tool for tool in await load_tools()}
+        text = await fetch_contributing(tools, target.owner, target.repo)
+    except Exception as exc:  # noqa: BLE001 - the rules check is advice; it must not crash the flow
+        print(f"Could not read the rules ({root_cause(exc)}). Read CONTRIBUTING on GitHub first.")
+        return
+    if text is None:
+        print("No CONTRIBUTING file found. Read the README and recent merged PRs first.")
+        return
+    outcome = await extract_rules(text)
+    if outcome is None:
+        print("Could not extract the rules. Read CONTRIBUTING on GitHub first.")
+        return
+    rules, asked = outcome
+    print_rules(rules, asked, len(text))
+    if rules.cla:
+        print("NOTE: a CLA is required before your pull request can be merged.")
+    if rules.claim_policy:
+        print("NOTE: this repo has a rule about claiming issues. Read it before you comment.")
+    if rules.ai_policy:
+        print("NOTE: this repo mentions AI-generated contributions. Read it before you comment.")
 
 
 async def write_draft(profile: Profile, target: Target) -> str:
@@ -156,6 +181,12 @@ async def main() -> None:
     target = pick_target(profile)
     where = f"{target.owner}/{target.repo}#{target.number}"
 
+    await show_policy(target)
+    if not ask_yes_no("Continue and write a draft comment? [y/n]: "):
+        print("Stopped. Nothing was posted.")
+        return
+
+    
     try:
         draft = await write_draft(profile, target)
     except Exception as exc:  # noqa: BLE001 - any LLM failure should end cleanly, not crash
