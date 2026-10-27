@@ -226,3 +226,5 @@ analyses.json
 audit.jsonl
 
 followup_state.json
+
+analysis_cache.json

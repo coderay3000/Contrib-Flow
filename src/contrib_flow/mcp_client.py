@@ -1,11 +1,14 @@
 import asyncio
 import json
 import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from dotenv import load_dotenv
 from langchain_core.tools import BaseTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mcp_adapters.tools import load_mcp_tools
 
 load_dotenv()
 
@@ -39,6 +42,13 @@ async def load_tools() -> list[BaseTool]:
     tools = await build_client().get_tools()
     return [tool for tool in tools if tool.name in ALLOWED]
 
+
+@asynccontextmanager
+async def github_tools() -> AsyncIterator[dict[str, BaseTool]]:
+    client = build_client()
+    async with client.session("github") as session:
+        tools = await load_mcp_tools(session)
+        yield {tool.name: tool for tool in tools if tool.name in ALLOWED}
 
 async def main() -> None:
     for tool in await load_tools():
