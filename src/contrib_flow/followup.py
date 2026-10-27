@@ -5,11 +5,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from contrib_flow.audit import AUDIT_FILE
 from contrib_flow.comment import ask_yes_no, call_write_tool
 from contrib_flow.mcp_client import load_tools, parse_result, root_cause
 from contrib_flow.profile import Profile
 
-AUDIT_FILE = Path("audit.jsonl")
 STATE_FILE = Path("followup_state.json")
 COMMENT_ID = re.compile(r"#issuecomment-(\d+)$")
 MAX_PER_RUN = 10

@@ -1,18 +1,16 @@
-import json
 import os
 import re
-from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
 
 import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
+from contrib_flow.audit import audit, posted_today
+
 load_dotenv()
 
 API = "https://api.github.com"
-AUDIT_FILE = Path("audit.jsonl")
+
 DAILY_LIMIT = int(os.environ.get("DAILY_LIMIT", "3"))
 MAX_BODY = 1500
 DISCORD_PREFIXES = (
@@ -30,25 +28,6 @@ def allowed_repos() -> set[str]:
     raw = os.environ.get("ALLOWED_REPOS", "")
     return {item.strip().lower() for item in raw.split(",") if item.strip()}
 
-
-def audit(event: dict[str, Any]) -> None:
-    event["at"] = datetime.now(UTC).isoformat()
-    with AUDIT_FILE.open("a", encoding="utf-8") as file:
-        file.write(json.dumps(event) + "\n")
-
-
-def posted_today() -> int:
-    if not AUDIT_FILE.exists():
-        return 0
-    today = datetime.now(UTC).date().isoformat()
-    count = 0
-    for line in AUDIT_FILE.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        entry = json.loads(line)
-        if entry.get("status") == "posted" and entry["at"].startswith(today):
-            count += 1
-    return count
 
 
 def refusal_reason(owner: str, repo: str, issue_number: int, body: str) -> str | None:
