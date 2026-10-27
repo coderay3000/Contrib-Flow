@@ -13,6 +13,7 @@ dependencies = [
     "langchain-mcp-adapters>=0.3.2",
     "langgraph>=1.2.16",
     "mcp>=1.30.0",
+    "pyperclip>=1.11.0",
     "python-dotenv>=1.2.4",
 ]
 

@@ -23,7 +23,7 @@ def tracked_issues() -> dict[tuple[str, int], int]:
         if not line.strip():
             continue
         entry = json.loads(line)
-        if entry.get("status") != "posted":
+        if entry.get("status") not in ("posted", "posted_manual"):
             continue
         match = COMMENT_ID.search(entry.get("url", ""))
         if not match:

@@ -3,10 +3,12 @@ import json
 import os
 import re
 import sys
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import pyperclip
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -16,6 +18,7 @@ from contrib_flow.mcp_client import load_tools, result_text, root_cause
 from contrib_flow.policy import extract_rules, fetch_contributing, print_rules
 from contrib_flow.profile import Profile
 from contrib_flow.recommend import rank_items
+from contrib_flow.write_server import audit
 
 load_dotenv()
 
@@ -120,20 +123,27 @@ def read_multiline() -> str:
     return "\n".join(lines).strip()
 
 
-def review(draft: str, where: str) -> str | None:
+def review(draft: str, where: str, assist: bool) -> str | None:
     while True:
         print("\n----- DRAFT -----")
         print(draft)
         print("-----------------")
-        print(f"This will be posted PUBLICLY on {where} from your GitHub account.")
-        choice = input("[y] post   [e] edit   [n] cancel: ").strip().lower()
+        if assist:
+            print(f"The app will NOT post this on {where}. You will paste it yourself.")
+            question = "[y] use this   [e] edit   [n] cancel: "
+        else:
+            print(f"This will be posted PUBLICLY on {where} from your GitHub account.")
+            question = "[y] post   [e] edit   [n] cancel: "
+        try:
+            choice = input(question).strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            return None
         if choice == "y":
             return draft
         if choice == "n":
             return None
         if choice == "e":
             draft = read_multiline() or draft
-
 
 async def call_write_tool(name: str, args: dict[str, Any]) -> str:
     client = MultiServerMCPClient(
@@ -167,6 +177,53 @@ async def notify_discord(message: str) -> tuple[bool, str]:
     return text == "sent", text
 
 
+def ask_text(prompt: str) -> str:
+    try:
+        return input(prompt).strip()
+    except (EOFError, KeyboardInterrupt):
+        return ""
+
+
+def copy_to_clipboard(text: str) -> bool:
+    try:
+        pyperclip.copy(text)
+    except pyperclip.PyperclipException:
+        return False
+    return True
+
+
+async def assist_flow(target: Target, body: str, where: str) -> None:
+    issue_url = f"https://github.com/{target.owner}/{target.repo}/issues/{target.number}"
+    print("\nAssist mode: the app will not post on this repository. You post it yourself.\n")
+    print(body)
+    if copy_to_clipboard(body):
+        print("\n(copied to your clipboard)")
+    print(f"\nIssue page: {issue_url}")
+    if ask_yes_no("Open the issue page in your browser? [y/n]: "):
+        webbrowser.open(issue_url)
+
+    pasted = ask_text("After you post it, paste the comment link here (Enter to skip): ")
+    if not pasted:
+        print("Skipped. Nothing was recorded.")
+        return
+    prefix = f"{issue_url}#issuecomment-".lower()
+    if not (pasted.lower().startswith(prefix) and COMMENT_URL.fullmatch(pasted)):
+        print("That is not a comment link on this issue, so it was not recorded.")
+        return
+    audit(
+        {
+            "status": "posted_manual",
+            "repo": f"{target.owner}/{target.repo}",
+            "issue": target.number,
+            "url": pasted,
+        }
+    )
+    print("Recorded. The follow-up command will now watch this issue for replies.")
+    if ask_yes_no("Send a note about this to Discord? [y/n]: "):
+        sent, info = await notify_discord(f"Commented on {where}: {pasted}")
+        print("Discord:", "sent" if sent else f"NOT sent ({info})")
+
+
 def ask_yes_no(prompt: str) -> bool:
     try:
         return input(prompt).strip().lower() == "y"
@@ -175,38 +232,36 @@ def ask_yes_no(prompt: str) -> bool:
 
 
 async def main() -> None:
-    profile = Profile.model_validate_json(
-        Path("profile.json").read_text(encoding="utf-8")
-    )
+    profile = Profile.model_validate_json(Path("profile.json").read_text(encoding="utf-8"))
     target = pick_target(profile)
     where = f"{target.owner}/{target.repo}#{target.number}"
+    assist = (
+        os.environ.get("ASSIST_ONLY") == "1"
+        or f"{target.owner}/{target.repo}".lower() not in allowed_repos()
+    )
 
     await show_policy(target)
     if not ask_yes_no("Continue and write a draft comment? [y/n]: "):
         print("Stopped. Nothing was posted.")
         return
 
-    
     try:
         draft = await write_draft(profile, target)
     except Exception as exc:  # noqa: BLE001 - any LLM failure should end cleanly, not crash
         print("Could not write a draft:", type(exc).__name__)
         return
 
-    approved = review(draft, where)
+    approved = review(draft, where, assist)
     if approved is None:
         print("Cancelled. Nothing was posted.")
         return
 
-    if f"{target.owner}/{target.repo}".lower() not in allowed_repos():
-        print(
-            f"Approved, but {target.owner}/{target.repo} is not in ALLOWED_REPOS, so nothing was posted."
-        )
+    if assist:
+        await assist_flow(target, approved, where)
         return
 
     ok, text = await post_comment(target, approved)
     print("Posted:" if ok else "NOT posted:", text)
-
     if ok and ask_yes_no("Send a note about this to Discord? [y/n]: "):
         sent, info = await notify_discord(f"Commented on {where}: {text}")
         print("Discord:", "sent" if sent else f"NOT sent ({info})")
