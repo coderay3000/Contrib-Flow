@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import os
 import time
@@ -7,7 +8,7 @@ from typing import Any, Literal
 
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 from contrib_flow.areas import Area
 from contrib_flow.candidates import Candidate, find_issues, find_repos
@@ -78,7 +79,13 @@ class Analyzed(BaseModel):
     analysis: IssueAnalysis
     verified_skills: list[str]
 
-
+PROMPT_VERSION = hashlib.sha256(
+    (
+        SYSTEM_PROMPT
+        + json.dumps(IssueAnalysis.model_json_schema(), sort_keys=True)
+        + str(BODY_LIMIT)
+    ).encode()
+).hexdigest()[:8]
 
 def issue_text(issue: dict[str, Any]) -> str:
     labels = ", ".join(issue.get("labels", []))
@@ -170,11 +177,17 @@ async def process(
 
     if key in cache:
         entry = cache[key]
-        if entry["outcome"] == "analyzed":
+        if entry["outcome"] != "analyzed":
+            print(f"{label}: cached skip ({entry['why']})")
+            return None
+        try:
+            cached_item = Analyzed.model_validate(entry["item"])
+        except ValidationError:
+            print(f"{label}: stale cache entry (schema changed), re-analysing")
+            del cache[key]
+        else:
             print(f"{label}: cached")
-            return Analyzed.model_validate(entry["item"])
-        print(f"{label}: cached skip ({entry['why']})")
-        return None
+            return cached_item
 
     async with semaphore:
         try:
