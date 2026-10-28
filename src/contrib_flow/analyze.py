@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import re
 import time
 from pathlib import Path
 from typing import Any, Literal
@@ -15,6 +14,7 @@ from contrib_flow.candidates import Candidate, find_issues, find_repos
 from contrib_flow.mcp_client import github_tools, parse_result, root_cause
 from contrib_flow.profile import Profile
 from contrib_flow.queries import plan_queries
+from contrib_flow.textnorm import normalize
 
 load_dotenv()
 
@@ -39,7 +39,13 @@ Rate honestly and use the whole scale:
   and gives enough detail to start; a one-line or vague idea is low.
 - difficulty: beginner = small localized change with clear steps; intermediate = needs
   understanding several files or components; advanced = design decisions or deep
-  internals. Do not default to intermediate."""
+  internals. Do not default to intermediate.
+- areas: pick 1 or 2 from the allowed values, the most specific ones.
+  generative-ai = LLMs, diffusion models, prompting, embeddings.
+  agents = tool use and agent frameworks.
+  machine-learning = model training, datasets, evaluation, numerical ML code.
+  backend = server-side application logic, APIs, databases (not libraries or ML code).
+  web-frontend, devops (CI, packaging, deployment), data-engineering, docs, testing, other.  """
 
 
 class SkillEvidence(BaseModel):
@@ -72,9 +78,6 @@ class Analyzed(BaseModel):
     analysis: IssueAnalysis
     verified_skills: list[str]
 
-
-def normalize(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip().lower()
 
 
 def issue_text(issue: dict[str, Any]) -> str:
@@ -134,7 +137,7 @@ async def analyse(llm: Any, text: str) -> IssueAnalysis | None:
         try:
             return await llm.ainvoke(messages)
         except Exception as exc:  # noqa: BLE001 - one failed LLM call must not stop the batch
-            print(f"  LLM failed (attempt {attempt}): {type(exc).__name__}")
+            print(f"  LLM failed (attempt {attempt}): {type(exc).__name__}: {str(exc)[:160]}")
             if wait:
                 await asyncio.sleep(wait)
     return None
@@ -236,9 +239,9 @@ async def main() -> None:
             save_cache(cache)
 
     results = [item for item in outcomes if isinstance(item, Analyzed)]
-    crashed = [item for item in outcomes if isinstance(item, BaseException)]
-    for error in crashed:
-        print("a candidate crashed:", root_cause(error))
+    for candidate, outcome in zip(candidates[:LIMIT], outcomes, strict=True):
+        if isinstance(outcome, BaseException):
+            print(f"{candidate.repo}#{candidate.number} crashed: {root_cause(outcome)}: {str(outcome)[:300]}")
 
     Path("analyses.json").write_text(
         json.dumps([item.model_dump() for item in results], indent=2), encoding="utf-8"

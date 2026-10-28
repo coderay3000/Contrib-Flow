@@ -9,6 +9,7 @@ from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
 
 from contrib_flow.mcp_client import load_tools, result_text
+from contrib_flow.textnorm import normalize
 
 load_dotenv()
 
@@ -43,11 +44,6 @@ class RepoRules(BaseModel):
     ai_policy: Rule | None = None
     rules: list[Rule] = Field(default_factory=list)
 
-
-def normalize(text: str) -> str:
-    text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
-    text = re.sub(r"[`*_#>]", "", text)
-    return re.sub(r"\s+", " ", text).strip().lower()
 
 
 def file_content(text: str) -> str | None:
