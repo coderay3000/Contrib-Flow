@@ -42,11 +42,18 @@ Rate honestly and use the whole scale:
   understanding several files or components; advanced = design decisions or deep
   internals. Do not default to intermediate.
 - areas: pick 1 or 2 from the allowed values, the most specific ones.
+  Decide by what the code being changed DOES, not by the language it is written in.
   generative-ai = LLMs, diffusion models, prompting, embeddings.
   agents = tool use and agent frameworks.
-  machine-learning = model training, datasets, evaluation, numerical ML code.
-  backend = server-side application logic, APIs, databases (not libraries or ML code).
-  web-frontend, devops (CI, packaging, deployment), data-engineering, docs, testing, other.  """
+  machine-learning = anything in an ML or scientific-computing library or tool: model
+  training, datasets, evaluation, numerical or tensor code, audio/image/signal
+  processing, reinforcement-learning environments.
+  backend = ONLY a server-side application: web app logic, HTTP APIs, databases, auth,
+  sessions. A library, framework, SDK or tool is NOT backend just because it has no UI.
+  web-frontend = browser UI, JavaScript, CSS, templates.
+  devops = CI, packaging, Docker, deployment, build systems.
+  data-engineering = pipelines, ETL, storage formats.
+  docs, testing, other. Use other when nothing fits; never use backend as a default."""
 
 
 class SkillEvidence(BaseModel):
