@@ -12,23 +12,63 @@ HOURS_UPPER = {"1-3": 3, "3-8": 8, "8-20": 20, "20+": 30}
 CLARITY_SCORE = {"low": 0.2, "medium": 0.6, "high": 1.0}
 PLANNING_WEEKS = 2
 
+SKILL_ALIASES = {
+    "js": "javascript",
+    "ts": "typescript",
+    "node": "node.js",
+    "nodejs": "node.js",
+    "postgres": "postgresql",
+    "k8s": "kubernetes",
+}
+SIMILAR_SKILLS = {
+    frozenset({"typescript", "javascript"}),
+    frozenset({"c++", "c"}),
+    frozenset({"postgresql", "sql"}),
+}
+GENERIC_SKILLS = {
+    "oop",
+    "object-oriented programming",
+    "api",
+    "apis",
+    "git",
+    "testing",
+    "unit testing",
+    "browser testing",
+    "class inheritance",
+    "debugging",
+}
+SIMILAR_CREDIT = 0.5
+
+
+def canonical(name: str) -> str:
+    cleaned = name.strip().lower()
+    return SKILL_ALIASES.get(cleaned, cleaned)
 
 def skill_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
-    have = {skill.name.lower(): skill for skill in profile.skills}
-    if not item.verified_skills:
-        return 0.3, "no skill evidence in the issue text, so we cannot tell"
+    have = {canonical(skill.name): skill for skill in profile.skills}
+    needed = [name for name in item.verified_skills if canonical(name) not in GENERIC_SKILLS]
+    if not needed:
+        return 0.3, "no specific skill evidence in the issue text, so we cannot tell"
     points = 0.0
     hits: list[str] = []
     missing: list[str] = []
-    for name in item.verified_skills:
-        skill = have.get(name.lower())
-        if skill is None:
-            missing.append(name)
-        else:
+    for name in needed:
+        key = canonical(name)
+        skill = have.get(key)
+        if skill is not None:
             points += CONFIDENCE_WEIGHT[skill.confidence]
             hits.append(f"{skill.name} ({skill.confidence})")
+            continue
+        close = next(
+            (have[other] for other in have if frozenset({key, other}) in SIMILAR_SKILLS), None
+        )
+        if close is not None:
+            points += SIMILAR_CREDIT * CONFIDENCE_WEIGHT[close.confidence]
+            hits.append(f"{close.name} (close to {name})")
+        else:
+            missing.append(name)
     reason = f"you have: {', '.join(hits) or 'none'}; missing: {', '.join(missing) or 'none'}"
-    return points / len(item.verified_skills), reason
+    return points / len(needed), reason
 
 
 def difficulty_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
