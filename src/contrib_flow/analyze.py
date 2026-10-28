@@ -138,15 +138,23 @@ async def fetch_issue(tools: dict[str, Any], candidate: Candidate) -> dict[str, 
     return parse_result(result)
 
 
+def retry_delay(exc: Exception, fallback: float) -> float:
+    headers = getattr(getattr(exc, "response", None), "headers", None)
+    try:
+        return float(headers["retry-after"]) + 1
+    except (TypeError, KeyError, ValueError):
+        return fallback
+
+
 async def analyse(llm: Any, text: str) -> IssueAnalysis | None:
     messages = [("system", SYSTEM_PROMPT), ("human", f"<issue>\n{text}\n</issue>")]
-    for attempt, wait in enumerate((5, 15, 0), start=1):
+    for attempt, fallback in enumerate((5, 15, 30, 60, 0), start=1):
         try:
             return await llm.ainvoke(messages)
         except Exception as exc:  # noqa: BLE001 - one failed LLM call must not stop the batch
             print(f"  LLM failed (attempt {attempt}): {type(exc).__name__}: {str(exc)[:160]}")
-            if wait:
-                await asyncio.sleep(wait)
+            if fallback:
+                await asyncio.sleep(retry_delay(exc, fallback))
     return None
 
 
