@@ -50,6 +50,19 @@ def effort_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
 def clarity_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     return CLARITY_SCORE[item.analysis.clarity], f"clarity is {item.analysis.clarity}"
 
+RELATED_PAIRS = [
+    ("generative-ai", "agents"),
+    ("generative-ai", "machine-learning"),
+    ("machine-learning", "data-engineering"),
+    ("agents", "backend"),
+    ("backend", "devops"),
+    ("backend", "data-engineering"),
+]
+RELATED: dict[str, set[str]] = {}
+for first, second in RELATED_PAIRS:
+    RELATED.setdefault(first, set()).add(second)
+    RELATED.setdefault(second, set()).add(first)
+
 def domain_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     wanted = set(profile.domains)
     if not wanted:
@@ -58,6 +71,9 @@ def domain_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     hits = sorted(areas & wanted)
     if hits:
         return 1.0, f"matches your areas: {', '.join(hits)}"
+    near = sorted(area for area in areas if RELATED.get(area, set()) & wanted)
+    if near:
+        return 0.5, f"issue is about {', '.join(near)}, close to your areas"
     return 0.0, f"issue is about {', '.join(sorted(areas)) or 'unknown'}, not your areas"
 
 def is_eligible(profile: Profile, item: Analyzed) -> bool:
