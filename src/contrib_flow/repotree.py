@@ -4,6 +4,7 @@ import sys
 from typing import Any
 
 from contrib_flow.mcp_client import github_tools, result_text
+from contrib_flow.policy import file_content
 
 SKIP_DIRS = {".git", "node_modules", "vendor", "dist", "build", "__pycache__", "assets", "images"}
 MAX_DEPTH = 3
@@ -58,6 +59,24 @@ async def path_exists(tools: dict[str, Any], owner: str, repo: str, path: str) -
     if text.startswith("failed to get file contents"):
         raise RuntimeError(text[:200])
     return True
+
+
+MAX_FILE = 12000
+
+
+async def read_file(tools: dict[str, Any], owner: str, repo: str, path: str) -> str | None:
+    result = await asyncio.wait_for(
+        tools["get_file_contents"].ainvoke({"owner": owner, "repo": repo, "path": path}),
+        timeout=30,
+    )
+    text = result_text(result)
+    lowered = text.strip().lower()
+    if NOT_FOUND in lowered:
+        return None
+    if lowered.startswith("failed to get file contents"):
+        raise RuntimeError(lowered[:200])
+    content = file_content(text)
+    return content[:MAX_FILE] if content else None
 
 async def main() -> None:
     target = sys.argv[1] if len(sys.argv) > 1 else "google-gemini/genai-processors"
