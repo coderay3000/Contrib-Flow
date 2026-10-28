@@ -4,7 +4,7 @@ from pathlib import Path
 from contrib_flow.analyze import Analyzed
 from contrib_flow.profile import Profile
 
-WEIGHTS = {"skill": 0.45, "difficulty": 0.25, "effort": 0.15, "clarity": 0.15}
+WEIGHTS = {"skill": 0.35, "difficulty": 0.20, "domain": 0.20, "effort": 0.10, "clarity": 0.15}
 CONFIDENCE_WEIGHT = {"high": 1.0, "medium": 0.7, "low": 0.4}
 LEVEL_RANK = {"beginner": 1, "intermediate": 2, "advanced": 3}
 DIFFICULTY_FIT = {0: 1.0, -1: 0.7, -2: 0.4, 1: 0.4, 2: 0.0}
@@ -50,6 +50,15 @@ def effort_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
 def clarity_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
     return CLARITY_SCORE[item.analysis.clarity], f"clarity is {item.analysis.clarity}"
 
+def domain_score(profile: Profile, item: Analyzed) -> tuple[float, str]:
+    wanted = set(profile.domains)
+    if not wanted:
+        return 0.5, "no preferred areas set"
+    areas = set(item.analysis.areas)
+    hits = sorted(areas & wanted)
+    if hits:
+        return 1.0, f"matches your areas: {', '.join(hits)}"
+    return 0.0, f"issue is about {', '.join(sorted(areas)) or 'unknown'}, not your areas"
 
 def is_eligible(profile: Profile, item: Analyzed) -> bool:
     gap = LEVEL_RANK[item.analysis.difficulty] - LEVEL_RANK[profile.level]
@@ -64,6 +73,7 @@ def score(
         "difficulty": difficulty_score(profile, item),
         "effort": effort_score(profile, item),
         "clarity": clarity_score(profile, item),
+        "domain": domain_score(profile, item),
     }
     total = sum(WEIGHTS[name] * value for name, (value, _) in parts.items())
     return total, parts

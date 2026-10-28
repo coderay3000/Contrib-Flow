@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from contrib_flow.areas import AREAS
 from contrib_flow.evidence import collect_evidence
 from contrib_flow.mcp_client import load_tools
 
@@ -66,11 +67,17 @@ def build_profile(
 def ask_list(prompt: str) -> list[str]:
     return [item.strip() for item in input(prompt).split(",") if item.strip()]
 
+def ask_areas() -> list[str]:
+    for number, area in enumerate(AREAS, start=1):
+        print(f"  {number}. {area}")
+    raw = input("Pick areas by number, e.g. 1,2,4: ")
+    numbers = [int(part) for part in raw.split(",") if part.strip().isdigit()]
+    return [AREAS[n - 1] for n in numbers if 1 <= n <= len(AREAS)]
 
 async def main() -> None:
     username = sys.argv[1] if len(sys.argv) > 1 else input("GitHub username: ").strip()
     declared = ask_list("Skills you know (comma separated): ")
-    domains = ask_list("Domains you like, e.g. ai, backend, mlops: ")
+    domains = ask_areas()
     level = input("Your level (beginner/intermediate/advanced): ").strip().lower()
     weekly_hours = int(input("Hours per week: "))
 

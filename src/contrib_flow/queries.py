@@ -58,6 +58,7 @@ def to_queries(plan: QueryPlan) -> list[str]:
     return queries
 
 
+
 async def plan_queries(profile: Profile) -> list[str]:
     llm = ChatGroq(
         model=os.environ["GROQ_MODEL"], temperature=0

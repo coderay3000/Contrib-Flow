@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
 
+from contrib_flow.areas import Area
 from contrib_flow.candidates import Candidate, find_issues, find_repos
 from contrib_flow.mcp_client import github_tools, parse_result, root_cause
 from contrib_flow.profile import Profile
@@ -19,7 +20,7 @@ load_dotenv()
 
 PROMPT_VERSION = "v3"
 CACHE_FILE = Path("analysis_cache.json")
-CONCURRENCY = 4
+CONCURRENCY = 2
 REPOS_PER_QUERY = 6
 PER_REPO = 3
 LIMIT = 40
@@ -59,6 +60,7 @@ class IssueAnalysis(BaseModel):
     estimated_hours: Literal["1-3", "3-8", "8-20", "20+"]
     clarity: Literal["low", "medium", "high"]
     blockers: list[str]
+    areas: list[Area] = Field(description="1 or 2 areas that best describe the work")
 
 
 class Analyzed(BaseModel):
@@ -128,12 +130,13 @@ async def fetch_issue(tools: dict[str, Any], candidate: Candidate) -> dict[str, 
 
 async def analyse(llm: Any, text: str) -> IssueAnalysis | None:
     messages = [("system", SYSTEM_PROMPT), ("human", f"<issue>\n{text}\n</issue>")]
-    for attempt in range(2):
+    for attempt, wait in enumerate((5, 15, 0), start=1):
         try:
             return await llm.ainvoke(messages)
         except Exception as exc:  # noqa: BLE001 - one failed LLM call must not stop the batch
-            print(f"  LLM failed (attempt {attempt + 1}): {type(exc).__name__}")
-            await asyncio.sleep(3)
+            print(f"  LLM failed (attempt {attempt}): {type(exc).__name__}")
+            if wait:
+                await asyncio.sleep(wait)
     return None
 
 
