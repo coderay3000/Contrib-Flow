@@ -3,7 +3,7 @@ import json
 import pytest
 
 from contrib_flow import repotree
-from contrib_flow.repotree import list_dir, path_exists, read_file, read_tree
+from contrib_flow.repotree import explore, list_dir, path_exists, read_file, read_tree
 
 MISSING = (
     "Failed to get file contents. The path does not point to a file or directory, "
@@ -151,3 +151,27 @@ async def test_read_file_raises_on_other_tool_errors():
     tools = tools_for({"a.py": "Failed to get file contents. API rate limit exceeded."})
     with pytest.raises(RuntimeError):
         await read_file(tools, "o", "r", "a.py")
+
+async def test_explore_reports_folders_it_did_not_open():
+    tools = tools_for(
+        {
+            "/": listing(("dir", "a")),
+            "a": listing(("dir", "a/b")),
+            "a/b": listing(("dir", "a/b/c")),
+            "a/b/c": listing(("dir", "a/b/c/d")),
+        }
+    )
+    _, unexplored = await explore(tools, "o", "r")
+    assert unexplored == ["a/b/c/d"]
+
+
+async def test_explore_can_start_inside_a_folder():
+    tools = tools_for(
+        {
+            "src": listing(("file", "src/a.py"), ("dir", "src/lib")),
+            "src/lib": listing(("file", "src/lib/b.py")),
+        }
+    )
+    files, unexplored = await explore(tools, "o", "r", start="src")
+    assert sorted(files) == ["src/a.py", "src/lib/b.py"]
+    assert unexplored == []

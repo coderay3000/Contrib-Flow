@@ -25,14 +25,18 @@ async def list_dir(
     return data if isinstance(data, list) else None
 
 
-async def read_tree(tools: dict[str, Any], owner: str, repo: str) -> tuple[list[str], bool]:
+async def explore(
+    tools: dict[str, Any], owner: str, repo: str, start: str = "/", max_calls: int | None = None
+) -> tuple[list[str], list[str]]:
+    limit = max_calls or MAX_CALLS
     files: list[str] = []
-    queue: list[tuple[str, int]] = [("/", 0)]
+    unexplored: list[str] = []
+    queue: list[tuple[str, int]] = [(start, 0)]
     calls = 0
-    truncated = False
     while queue:
-        if calls >= MAX_CALLS:
-            return files, True
+        if calls >= limit:
+            unexplored.extend(path for path, _ in queue)
+            break
         path, depth = queue.pop(0)
         calls += 1
         for entry in await list_dir(tools, owner, repo, path) or []:
@@ -42,8 +46,13 @@ async def read_tree(tools: dict[str, Any], owner: str, repo: str) -> tuple[list[
                 if depth < MAX_DEPTH:
                     queue.append((entry.get("path", ""), depth + 1))
                 else:
-                    truncated = True
-    return files, truncated
+                    unexplored.append(entry.get("path", ""))
+    return files, unexplored
+
+
+async def read_tree(tools: dict[str, Any], owner: str, repo: str) -> tuple[list[str], bool]:
+    files, unexplored = await explore(tools, owner, repo)
+    return files, bool(unexplored)
 
 NOT_FOUND = "does not point to a file or directory"
 
