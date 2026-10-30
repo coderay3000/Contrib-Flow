@@ -130,3 +130,12 @@ def test_effort_over_capacity_is_scaled():
 def test_eligibility_blocks_two_levels_up():
     assert not is_eligible(make_profile(), make_item(difficulty="advanced"))
     assert is_eligible(make_profile(), make_item(difficulty="intermediate"))
+
+def test_concepts_that_are_not_technologies_are_ignored():
+    score, _ = skill_score(make_profile(), make_item(verified=["Bearer token", "regex"]))
+    assert score == 0.3
+
+
+def test_ignored_concepts_do_not_lower_a_real_match():
+    score, _ = skill_score(make_profile(), make_item(verified=["Python", "security"]))
+    assert score == 1.0    

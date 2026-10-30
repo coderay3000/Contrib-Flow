@@ -36,6 +36,14 @@ GENERIC_SKILLS = {
     "browser testing",
     "class inheritance",
     "debugging",
+    "bearer token",
+    "api-key authentication",
+    "authentication",
+    "provider abstraction",
+    "security",
+    "regex",
+    "technical writing",
+    "async/await",
 }
 SIMILAR_CREDIT = 0.5
 
