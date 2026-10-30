@@ -346,9 +346,8 @@ async def main() -> None:
                 print("files read:", ", ".join(loaded))
                 continue
             print(answer)
-            for path, line in verified:
+            for path, line in dict.fromkeys(verified):
                 print(f"  source: {path}" + (f":{line}" if line else ""))
-            history += [f"developer: {question}", f"mentor: {answer}"]
 
 
 if __name__ == "__main__":
