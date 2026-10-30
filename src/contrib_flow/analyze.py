@@ -242,6 +242,23 @@ async def process(
         )
         return item
 
+async def analyse_candidates(tools: dict[str, Any], candidates: list[Candidate]) -> list[Analyzed]:
+    llm = ChatGroq(
+        model=os.environ["GROQ_MODEL"], temperature=0, timeout=30, max_retries=1
+    ).with_structured_output(IssueAnalysis)
+    cache = load_cache()
+    semaphore = asyncio.Semaphore(CONCURRENCY)
+    try:
+        outcomes = await asyncio.gather(
+            *(process(c, tools, llm, semaphore, cache) for c in candidates[:LIMIT]),
+            return_exceptions=True,
+        )
+    finally:
+        save_cache(cache)
+    for candidate, outcome in zip(candidates[:LIMIT], outcomes, strict=True):
+        if isinstance(outcome, BaseException):
+            print(f"{candidate.repo}#{candidate.number} crashed: {root_cause(outcome)}")
+    return [item for item in outcomes if isinstance(item, Analyzed)]
 
 async def main() -> None:
     started = time.perf_counter()
