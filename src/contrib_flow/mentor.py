@@ -285,6 +285,36 @@ async def answer_question(
     return reply.answer, verified
 
 
+async def mentor_plan(tools: dict[str, Any], owner: str, repo: str, number: int) -> dict[str, Any]:
+    base = ChatGroq(model=os.environ["GROQ_MODEL"], temperature=0, timeout=60, max_retries=1)
+    issue = parse_result(
+        await tools["issue_read"].ainvoke(
+            {"method": "get", "owner": owner, "repo": repo, "issue_number": number}
+        )
+    )
+    text = issue_text(issue)
+    files = await pick_files(tools, base.with_structured_output(FilePlan), owner, repo, text)
+    result = await explain(tools, base.with_structured_output(MentorPlan), owner, repo, text, files)
+    if result is None:
+        return {
+            "summary": "",
+            "edits": [],
+            "new_files": [],
+            "not_sure": ["the mentor could not answer right now"],
+        }
+    plan, kept, new_files = result
+    return {
+        "summary": plan.summary,
+        "edits": [
+            {"path": c.path, "line": line, "where": c.where, "what": c.what, "quote": c.quote}
+            for c, line in kept
+        ],
+        "new_files": [
+            {"path": f"{new.folder.strip('/')}/{new.name}", "why": new.why} for new in new_files
+        ],
+        "not_sure": plan.not_sure,
+    }
+
 async def main() -> None:
     target = sys.argv[1] if len(sys.argv) > 1 else "google-gemini/genai-processors#9"
     repo_full, number = target.split("#")

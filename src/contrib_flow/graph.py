@@ -9,6 +9,7 @@ from langgraph.types import Command, interrupt
 from contrib_flow.analyze import Analyzed, analyse_candidates, gather_candidates
 from contrib_flow.candidates import Candidate
 from contrib_flow.mcp_client import github_tools
+from contrib_flow.mentor import mentor_plan
 from contrib_flow.profile import Profile
 from contrib_flow.queries import plan_queries
 from contrib_flow.recommend import rank_items
@@ -21,6 +22,7 @@ class State(TypedDict, total=False):
     items: list[dict[str, Any]]
     ranked: list[dict[str, Any]]
     target: dict[str, Any]
+    plan: dict[str, Any]
 
 
 def build_graph(tools: dict[str, Any]) -> Any:
@@ -65,6 +67,23 @@ def build_graph(tools: dict[str, Any]) -> Any:
         choice = interrupt({"options": state["ranked"]})
         return {"target": state["ranked"][int(choice) - 1]}
 
+    async def mentor(state: State) -> dict[str, Any]:
+        target = state["target"]
+        owner, repo = target["repo"].split("/")
+        plan = await mentor_plan(tools, owner, repo, target["number"])
+        print(f"\nsummary: {plan['summary']}\n")
+        for edit in plan["edits"]:
+            place = f"line {edit['line']}" if edit["line"] else "line not found"
+            print(f"EDIT {edit['path']} ({place})")
+            print(f"  where: {edit['where']}")
+            print(f"  what:  {edit['what']}")
+            print(f"  quote: {edit['quote']}\n")
+        for new in plan["new_files"]:
+            print(f"NEW FILE {new['path']}\n  why: {new['why']}\n")
+        for item in plan["not_sure"]:
+            print(f"NOT SURE: {item}")
+        return {"plan": plan}
+
     builder = StateGraph(State)
 
     builder.add_node("load_profile", load_profile)
@@ -73,6 +92,7 @@ def build_graph(tools: dict[str, Any]) -> Any:
     builder.add_node("analyse", analyse)
     builder.add_node("rank", rank)
     builder.add_node("choose", choose)
+    builder.add_node("mentor", mentor)
 
     builder.add_edge(START, "load_profile")
     builder.add_edge("load_profile", "plan")
@@ -80,7 +100,8 @@ def build_graph(tools: dict[str, Any]) -> Any:
     builder.add_edge("search", "analyse")
     builder.add_edge("analyse", "rank")
     builder.add_edge("rank", "choose")
-    builder.add_edge("choose", END)
+    builder.add_edge("choose", "mentor")
+    builder.add_edge("mentor", END)
 
     return builder.compile(checkpointer=InMemorySaver())
 
