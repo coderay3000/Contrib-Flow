@@ -1,0 +1,387 @@
+{
+  "apache/burr#391": {
+    "title": "Demonstrate deployment of Burr UI on AWS",
+    "url": "https://github.com/apache/burr/issues/391",
+    "summary": "Add a documentation page and example showing how to deploy Burr UI on AWS using Terraform, with VPN and S3 bucket parameters.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "docs",
+      "devops"
+    ],
+    "relevant": false
+  },
+  "google-gemini/genai-processors#9": {
+    "title": "Add LowercaseTextProcessor for text normalization",
+    "url": "https://github.com/google-gemini/genai-processors/issues/9",
+    "summary": "Add a LowercaseTextProcessor class that lowercases text parts while preserving metadata.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "machine-learning"
+    ],
+    "relevant": false
+  },
+  "mims-harvard/ToolUniverse#769": {
+    "title": "[Feature request] Opt-in Baizhi MCP catalog category for search and page extraction",
+    "url": "https://github.com/mims-harvard/ToolUniverse/issues/769",
+    "summary": "Add an opt\u2011in Baizhi MCP catalog category with HTTP streaming, Bearer token auth, documentation, and tests for search, page\u2011read, and extraction tools.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "agents",
+      "backend"
+    ],
+    "relevant": true
+  },
+  "HumanSignal/Adala#857": {
+    "title": "[Security] SSRF and credential forwarding via unvalidated base_url request header",
+    "url": "https://github.com/HumanSignal/Adala/issues/857",
+    "summary": "Fix SSRF vulnerability by removing request\u2011controlled `base_url` (and possibly `api_key`) handling in `server/app.py`, adding server\u2011side whitelist validation.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "agentlas-ai/Agentlas-OS#17": {
+    "title": "Add OrcaRouter as an optional AI provider",
+    "url": "https://github.com/agentlas-ai/Agentlas-OS/issues/17",
+    "summary": "Add OrcaRouter as an optional AI provider using its OpenAI-compatible API and API-key authentication, reusing existing provider abstraction.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "generative-ai",
+      "backend"
+    ],
+    "relevant": true
+  },
+  "SonicJs-Org/sonicjs#1139": {
+    "title": "Plugin: Password Complexity Policy",
+    "url": "https://github.com/SonicJs-Org/sonicjs/issues/1139",
+    "summary": "Create a SonicJS plugin to enforce configurable password complexity policies, integrating with auth flow, storing settings in D1, adding admin UI, and providing validation utilities with tests.",
+    "difficulty": "intermediate",
+    "hours": "8-20",
+    "areas": [
+      "backend",
+      "web-frontend"
+    ],
+    "relevant": false
+  },
+  "SonicJs-Org/sonicjs#340": {
+    "title": "Email Plugin: How to Enable and Configure",
+    "url": "https://github.com/SonicJs-Org/sonicjs/issues/340",
+    "summary": "Implement provider abstraction in core email plugin, refactor email-templates plugin to use core sendEmail API, and integrate email-templates into admin UI.",
+    "difficulty": "intermediate",
+    "hours": "8-20",
+    "areas": [
+      "backend",
+      "web-frontend"
+    ],
+    "relevant": false
+  },
+  "kuzzleio/kuzzle#3074": {
+    "title": "waitForCollectionShards does not wait: cluster health reports yellow for a new index whose primary is still initializing",
+    "url": "https://github.com/kuzzleio/kuzzle/issues/3074",
+    "summary": "Fix waitForCollectionShards to correctly wait for shard initialization by adding wait_for_active_shards or wait_for_no_initializing_shards to the Elasticsearch health call and add unit tests.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": true
+  },
+  "kuzzleio/kuzzle#3059": {
+    "title": "Logger.child() returns an object lacking Logger methods (getLevel, setLevel, silly, verbose)",
+    "url": "https://github.com/kuzzleio/kuzzle/issues/3059",
+    "summary": "Fix Logger.child() to return an object with full Logger methods by assigning the correct prototype.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "kuzzleio/kuzzle#3058": {
+    "title": "Response headers Last-Modified and Location are concatenated instead of overwritten",
+    "url": "https://github.com/kuzzleio/kuzzle/issues/3058",
+    "summary": "Fix response header handling by separating combined case for Last-Modified and Location into distinct cases to ensure proper overwriting.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "backend"
+    ],
+    "relevant": true
+  },
+  "apache/burr#138": {
+    "title": "ML Training Example",
+    "url": "https://github.com/apache/burr/issues/138",
+    "summary": "Create an example demonstrating human-in-the-loop and epoch-based ML training, including documentation.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "machine-learning",
+      "docs"
+    ],
+    "relevant": false
+  },
+  "apache/burr#715": {
+    "title": "Release process automation and maturity",
+    "url": "https://github.com/apache/burr/issues/715",
+    "summary": "Automate the Apache release workflow: single-command RC creation and promotion, release branches, backporting, release notes, reproducible builds, and CI enhancements.",
+    "difficulty": "intermediate",
+    "hours": "8-20",
+    "areas": [
+      "devops"
+    ],
+    "relevant": false
+  },
+  "CodeBoarding/CodeBoarding#652": {
+    "title": "Record runtime type and variant references as TYPEREF instead of call edges",
+    "url": "https://github.com/CodeBoarding/CodeBoarding/issues/652",
+    "summary": "Change the static analysis engine to emit TYPEREF edges for runtime type and variant references instead of CALL edges, updating edge recording logic and related tests.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "CodeBoarding/CodeBoarding#645": {
+    "title": "DeepSeek - 'Thinking mode does not support this tool_choice...'",
+    "url": "https://github.com/CodeBoarding/CodeBoarding/issues/645",
+    "summary": "Fix the DeepSeek integration error caused by unsupported tool_choice in the OpenAI request, adjusting the LangChain OpenAI chat model usage.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "machine-learning",
+      "backend"
+    ],
+    "relevant": false
+  },
+  "CodeBoarding/CodeBoarding#634": {
+    "title": "Rollback after failed analysis can corrupt or overwrite the saved baseline",
+    "url": "https://github.com/CodeBoarding/CodeBoarding/issues/634",
+    "summary": "Fix rollback behavior to ensure consistent baseline restoration by adding proper directory-level locking and restoring all related artifacts.",
+    "difficulty": "intermediate",
+    "hours": "8-20",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "roboflow/inference#1377": {
+    "title": "needs to be checked if PE model accepts batches (if so - maybe worth claiming use of batches of inputs)",
+    "url": "https://github.com/roboflow/inference/issues/1377",
+    "summary": "Add a class method to indicate that the 'data' parameter accepts batch inputs for the perception encoder model.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "machine-learning"
+    ],
+    "relevant": true
+  },
+  "roboflow/inference#3271": {
+    "title": "inference-models on Windows: model loading fails with WinError 1314 unless Developer Mode is on; default cache is `/tmp/cache`",
+    "url": "https://github.com/roboflow/inference/issues/3271",
+    "summary": "Fix Windows model loading by handling symlink privilege errors: fallback to hardlink or copy, adjust integrity check, and change default cache directory to a per-user location.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "roboflow/inference#3174": {
+    "title": "`pip install inference` installs three OpenCV distributions; `easyocr` pulls an unpinned `opencv-python-headless` 5.0 that competes with the pinned 4.x `cv2`",
+    "url": "https://github.com/roboflow/inference/issues/3174",
+    "summary": "Resolve OpenCV package conflict by pinning opencv-python-headless to 4.x or making easyocr an optional extra, updating requirement files.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "devops"
+    ],
+    "relevant": false
+  },
+  "vasu-devs/JustHireMe#162": {
+    "title": "[Bug]: Tauri window on Linux 7.1.1-2-cachyos is blank",
+    "url": "https://github.com/vasu-devs/JustHireMe/issues/162",
+    "summary": "Fix blank Tauri window on Linux 7.1.1-2-cachyos caused by GTK module load failure and EGL display error.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "vasu-devs/JustHireMe#187": {
+    "title": "[Bug]: Cover Letter Format is Not Structured & Lacks Custom Prompt Injection",
+    "url": "https://github.com/vasu-devs/JustHireMe/issues/187",
+    "summary": "Fix cover letter generation to improve formatting and enable custom or optimized backend prompts for better output.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "generative-ai",
+      "backend"
+    ],
+    "relevant": false
+  },
+  "antoinezambelli/forge#151": {
+    "title": "reasoning-replay=keep-last mandatory with pi/gpt-oss-20b but lead to request crash",
+    "url": "https://github.com/antoinezambelli/forge/issues/151",
+    "summary": "Fix TypeError in Forge's llamafile client when using --reasoning-replay keep-last, caused by concatenating a string to a list in message merging.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "antoinezambelli/forge#142": {
+    "title": "send_stream() doesn't catch httpx.ReadTimeout like send() does -- causes a confusing secondary TypeError on backend timeout",
+    "url": "https://github.com/antoinezambelli/forge/issues/142",
+    "summary": "Add proper httpx.ReadTimeout handling to OpenAICompatClient.send_stream() to raise BackendError instead of propagating raw exception.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "backend"
+    ],
+    "relevant": true
+  },
+  "antoinezambelli/forge#116": {
+    "title": "Add multi-part / image content support (text-only today; proxy\u2194WorkflowRunner parity)",
+    "url": "https://github.com/antoinezambelli/forge/issues/116",
+    "summary": "Add structured multi-part content support to Message model, update serializers for image handling across backends, and extend WorkflowRunner to accept multi-modal inputs.",
+    "difficulty": "advanced",
+    "hours": "20+",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "marketcalls/openalgo#2326": {
+    "title": "Flow scheduler stops firing jobs after some hours (eventlet worker); next_run_time stays in the past",
+    "url": "https://github.com/marketcalls/openalgo/issues/2326",
+    "summary": "Scheduled jobs stop firing after hours due to eventlet\u2011patched scheduler thread stalling; need to replace BackgroundScheduler with an eventlet\u2011compatible scheduler, adjust process model, or add a watchdog.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "marketcalls/openalgo#2311": {
+    "title": "Flow initiation error after container update or next day",
+    "url": "https://github.com/marketcalls/openalgo/issues/2311",
+    "summary": "Fix the error that occurs when the container is updated, which prevents the WhatsApp integration workflow from running correctly.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "devops",
+      "backend"
+    ],
+    "relevant": false
+  },
+  "widgetti/solara#1268": {
+    "title": "GridDraggable renders blank with ipyvue/ipyvuetify 3, which a fresh install now pulls in",
+    "url": "https://github.com/widgetti/solara/issues/1268",
+    "summary": "Cap ipyvue and ipyvuetify dependencies to <3 in Solara 1.x to prevent GridDraggable rendering blank.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "backend"
+    ],
+    "relevant": true
+  },
+  "widgetti/solara#1267": {
+    "title": "multipage prefix not preserved",
+    "url": "https://github.com/widgetti/solara/issues/1267",
+    "summary": "Fix Solara navigation to preserve configured root path prefix when deployed behind an Nginx proxy.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "web-frontend"
+    ],
+    "relevant": false
+  },
+  "widgetti/solara#1256": {
+    "title": "Computed recomputing on two threads at once leaks one thread's reactive watch into the other (RecursionError)",
+    "url": "https://github.com/widgetti/solara/issues/1256",
+    "summary": "Fix a concurrency bug where two threads recomputing the same Solara Computed share a single AutoSubscribeContextManager instance, causing reactive watch leakage and RecursionError.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "indico/indico#7798": {
+    "title": "Errors with contribution/session at end of day",
+    "url": "https://github.com/indico/indico/issues/7798",
+    "summary": "Fix bugs preventing session blocks from spanning midnight and handling contributions that violate timetable constraints, improving error messages and UI drag behavior.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend",
+      "web-frontend"
+    ],
+    "relevant": false
+  },
+  "indico/indico#7797": {
+    "title": "Unlisted event alert should include the Publish button inside the alert",
+    "url": "https://github.com/indico/indico/issues/7797",
+    "summary": "Relocate the Publish button into the unlisted event alert on the event management page to improve UI context.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "web-frontend"
+    ],
+    "relevant": false
+  },
+  "indico/indico#7760": {
+    "title": "Grant access to all logged-in users in ACL",
+    "url": "https://github.com/indico/indico/issues/7760",
+    "summary": "Add a pseudo-group representing all logged-in users that can be used in ACLs, enabling a simple way to grant access to every authenticated user.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "NeptuneHub/AudioMuse-AI#987": {
+    "title": "[FEATURE] save playlists",
+    "url": "https://github.com/NeptuneHub/AudioMuse-AI/issues/987",
+    "summary": "Add functionality to persist playlists, allow updates, and sync them to Jellyfin and Plex servers.",
+    "difficulty": "intermediate",
+    "hours": "8-20",
+    "areas": [
+      "backend"
+    ],
+    "relevant": false
+  },
+  "NeptuneHub/AudioMuse-AI#984": {
+    "title": "[FEATURE] Improve accuracy of \"Full Title\" playlist names",
+    "url": "https://github.com/NeptuneHub/AudioMuse-AI/issues/984",
+    "summary": "Add song tags and optional templating (e.g., Jinja2) to the playlist prompt to improve LLM-generated playlist title accuracy.",
+    "difficulty": "intermediate",
+    "hours": "3-8",
+    "areas": [
+      "generative-ai"
+    ],
+    "relevant": false
+  },
+  "quay/quay#7850": {
+    "title": "Clarify whether backport PRs should carry the original Jira key or may use NO-ISSUE",
+    "url": "https://github.com/quay/quay/issues/7850",
+    "summary": "Clarify backport PR title convention in AGENTS.md and optionally enforce Jira key requirement in CI script.",
+    "difficulty": "beginner",
+    "hours": "1-3",
+    "areas": [
+      "docs",
+      "devops"
+    ],
+    "relevant": true
+  }
+}
