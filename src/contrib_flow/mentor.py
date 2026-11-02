@@ -1,4 +1,5 @@
-import asyncio
+﻿import asyncio
+import json
 import os
 import sys
 from typing import Any
@@ -65,10 +66,14 @@ NO_TOOLS = (
     "format. If you need something that is not given, say so in your answer."
 )
 
-async def ask(llm: Any, system: str, human: str) -> Any:
-    for attempt, fallback in enumerate((5, 15, 30, 0), start=1):
+async def ask(llm: Any, system: str, human: str, shape: type[BaseModel] | None = None) -> Any:
+    rules = system + NO_TOOLS
+    if shape is not None:
+        schema = json.dumps(shape.model_json_schema())
+        rules += f"\nReply with one JSON object only, no prose, matching this JSON schema:\n{schema}"
+    for attempt, fallback in enumerate((5, 15, 30, 60, 0), start=1):
         try:
-            return await llm.ainvoke([("system", system + NO_TOOLS), ("human", human)])
+            return await llm.ainvoke([("system", rules), ("human", human)])
         except Exception as exc:  # noqa: BLE001 - a failed LLM call must not crash the mentor
             print(f"  LLM failed (attempt {attempt}): {type(exc).__name__}: {str(exc)[:160]}")
             if fallback:
@@ -105,7 +110,7 @@ async def open_folders(
         f"<listed_files>\n{chr(10).join(files[:150])}\n</listed_files>\n\n"
         f"<unopened_folders>\n{chr(10).join(unexplored[:150])}\n</unopened_folders>"
     )
-    pick = await ask(llm, FOLDER_PROMPT, human)
+    pick = await ask(llm, FOLDER_PROMPT, human, FolderPick)
     if pick is None:
         return []
     allowed = set(unexplored)
@@ -179,14 +184,14 @@ async def pick_files(
         f"<contributing>\n{contributing[:MAX_README]}\n</contributing>\n\n<files>\n{tree}\n</files>"
     )
     print("  [3/4] asking the model to pick files")
-    plan = await ask(llm, FILE_PROMPT, human)
+    plan = await ask(llm, FILE_PROMPT, human, FilePlan)
     if plan is None:
         return []
     checked, rejected = await check_guesses(tools, (owner, repo), text, plan)
     if not checked and rejected:
         print("  [3b] none of the chosen paths exist, asking once more")
         note = "\n\nThese paths do NOT exist in the repo, do not choose them again: " + ", ".join(rejected)
-        plan = await ask(llm, FILE_PROMPT, human + note)
+        plan = await ask(llm, FILE_PROMPT, human + note, FilePlan)
         if plan is not None:
             checked, _ = await check_guesses(tools, (owner, repo), text, plan)
     return checked
@@ -246,7 +251,7 @@ async def explain(
         budget -= len(part)
     blocks = "\n\n".join(f'<file path="{f.path}">\n{f.content}\n</file>' for f in shown)
     print("  [4/4] asking the model to explain")
-    plan = await ask(llm, EXPLAIN_PROMPT, f"<issue>\n{text}\n</issue>\n\n{blocks}")
+    plan = await ask(llm, EXPLAIN_PROMPT, f"<issue>\n{text}\n</issue>\n\n{blocks}", MentorPlan)
     if plan is None:
         return None
 
@@ -324,7 +329,7 @@ async def answer_question(
             f"<issue>\n{text}\n</issue>\n\n{render_files(loaded)}\n\n"
             f"<conversation>\n{chr(10).join(history[-6:])}\n</conversation>\n\nQuestion: {question}"
         )
-        reply = await ask(llm, CHAT_PROMPT, human)
+        reply = await ask(llm, CHAT_PROMPT, human, ChatAnswer)
         if reply is None:
             return None
         wanted = [
@@ -365,13 +370,13 @@ async def mentor_plan(tools: dict[str, Any], owner: str, repo: str, number: int)
     text = issue_text(issue)
     files = await pick_files(
         tools,
-        base.with_structured_output(FilePlan),
+        base.with_structured_output(FilePlan, method="json_mode"),
         owner,
         repo,
         text,
-        base.with_structured_output(FolderPick),
+        base.with_structured_output(FolderPick, method="json_mode"),
     )
-    result = await explain(tools, base.with_structured_output(MentorPlan), owner, repo, text, files)
+    result = await explain(tools, base.with_structured_output(MentorPlan, method="json_mode"), owner, repo, text, files)
     if result is None:
         return {
             "summary": "",
@@ -397,9 +402,9 @@ async def main() -> None:
     repo_full, number = target.split("#")
     owner, repo = repo_full.split("/")
     base = ChatGroq(model=os.environ["GROQ_MODEL"], temperature=0, timeout=60, max_retries=1)
-    pick_llm = base.with_structured_output(FilePlan)
-    explain_llm = base.with_structured_output(MentorPlan)
-    chat_llm = base.with_structured_output(ChatAnswer)
+    pick_llm = base.with_structured_output(FilePlan, method="json_mode")
+    explain_llm = base.with_structured_output(MentorPlan, method="json_mode")
+    chat_llm = base.with_structured_output(ChatAnswer, method="json_mode")
 
     async with github_tools() as tools:
         issue = parse_result(
@@ -410,7 +415,7 @@ async def main() -> None:
         text = issue_text(issue)
         print(f"{target}: {issue['title']}\n")
         files = await pick_files(
-            tools, pick_llm, owner, repo, text, base.with_structured_output(FolderPick)
+            tools, pick_llm, owner, repo, text, base.with_structured_output(FolderPick, method="json_mode")
         )
         result = await explain(tools, explain_llm, owner, repo, text, files)
         if result is None:
